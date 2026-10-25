@@ -4,7 +4,7 @@ assertion_line: 4180
 expression: normalized_backend_snapshot(terminal.backend())
 ---
 "                                                                                "
-"─────────────────────────────────────────────────────────────◐ medium · /model  "
+"──────────────────────────────────────────────────────────── ◐ medium · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.2 medium                                                                "

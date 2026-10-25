@@ -182,7 +182,7 @@ fn effort_change_refreshes_header_without_starting_tier_animation() {
     ));
     assert_eq!(
         pane.composer.effort_header_line(),
-        Some(Line::from("◐ high · /model  ".dim()).right_aligned()),
+        Some(Line::from(" ◐ high · /model  ".dim()).right_aligned()),
     );
 }
 

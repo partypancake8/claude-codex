@@ -4,67 +4,67 @@ assertion_line: 166
 expression: "frames.join(\"\\n\\n\")"
 ---
 draft / running=false / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ draft
 02: ────────────────────────────────────────
 
 draft / running=false / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ draft
 03: ────────────────────────────────────────
 
 draft / running=true / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ draft
 02: ────────────────────────────────────────
 
 draft / running=true / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ draft
 03: ────────────────────────────────────────
 
 /mo / running=false / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ /mo
 02: ────────────────────────────────────────
 
 /mo / running=false / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ /mo
 03: ────────────────────────────────────────
 
 /mo / running=true / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ /mo
 02: ────────────────────────────────────────
 
 /mo / running=true / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ /mo
 03: ────────────────────────────────────────
 
 @src / running=false / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ @src
 02: ────────────────────────────────────────
 
 @src / running=false / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ @src
 03: ────────────────────────────────────────
 
 @src / running=true / 3 rows:
-00: ─────────────────────◐ medium · /model
+00: ──────────────────── ◐ medium · /model
 01: ❯ @src
 02: ────────────────────────────────────────
 
 @src / running=true / 4 rows:
 rows 0..1: blank
-01: ─────────────────────◐ medium · /model
+01: ──────────────────── ◐ medium · /model
 02: ❯ @src
 03: ────────────────────────────────────────

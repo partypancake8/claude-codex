@@ -31,6 +31,41 @@ fn framed_multiline_draft_keeps_cursor_inside_rules() {
 }
 
 #[test]
+fn effort_title_stays_clear_of_rule_across_resizes() {
+    let (mut composer, _rx) = new_test_composer();
+    composer.use_separate_navigation_row();
+    composer.set_text_content("draft".to_string(), Vec::new(), Vec::new());
+    let mut frames = Vec::new();
+    for effort in [ReasoningEffort::High, ReasoningEffort::Medium] {
+        composer.set_active_reasoning_effort_baseline(Some(&effort));
+        for width in [60, 49, 24, 23, 100, 49] {
+            let height = composer.desired_height(width);
+            let area = Rect::new(/*x*/ 0, /*y*/ 0, width, height);
+            let mut buffer = Buffer::empty(area);
+            composer.render(area, &mut buffer);
+            let rows = (0..height)
+                .map(|y| {
+                    (0..width)
+                        .map(|x| buffer[(x, y)].symbol())
+                        .collect::<String>()
+                })
+                .collect::<Vec<_>>();
+            if width >= 24 {
+                let title = format!(" ◐ {} · /model  ", effort.as_str());
+                assert!(rows[0].ends_with(&title));
+                assert!(rows[0].contains("─ ◐"));
+            } else {
+                assert_eq!(rows[0], "─".repeat(usize::from(width)));
+            }
+            assert_eq!(rows[2], "─".repeat(usize::from(width)));
+            assert!(rows[1].contains("draft"));
+            frames.push(format!("{effort:?}, {width} columns:\n{}", rows.join("\n")));
+        }
+    }
+    insta::assert_snapshot!(frames.join("\n\n"));
+}
+
+#[test]
 fn framed_composer_handles_constrained_terminal_sizes() {
     let (mut composer, _rx) = new_test_composer();
     composer.set_text_content("draft".to_string(), Vec::new(), Vec::new());

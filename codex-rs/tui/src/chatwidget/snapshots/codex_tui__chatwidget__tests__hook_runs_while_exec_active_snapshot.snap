@@ -11,7 +11,7 @@ exec and hook running:
 "● Shell (running) echo done                                                     "
 "                                                                                "
 "⠋ Working (0s • esc to interrupt) · checking output policy                      "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -23,7 +23,7 @@ history after exec:
 hook running after exec:
 "                                                                                "
 "⠋ Working (0s • esc to interrupt) · checking output policy                      "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -31,7 +31,7 @@ hook running after exec:
 quiet hook completed:
 "                                                                                "
 "⠋ Working (0s • esc to interrupt)                                               "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "

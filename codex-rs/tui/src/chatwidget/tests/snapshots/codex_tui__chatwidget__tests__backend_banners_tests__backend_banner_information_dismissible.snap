@@ -8,7 +8,7 @@ expression: normalize_snapshot_paths(rendered)
 
   esc to dismiss · type to continue
 
-──────────────────────────────────────────────────◐ default · /model
+───────────────────────────────────────────────── ◐ default · /model
 ❯ Ask Codex to do anything
 ──────────────────────────────────────────────────────────────────────
   test-model-a default · /tmp/project

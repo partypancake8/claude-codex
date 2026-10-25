@@ -4,7 +4,7 @@ assertion_line: 423
 expression: terminal.backend()
 ---
 "                                                                                "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask a follow-up question                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  Side from main thread · main needs input · ctrl + / to switch · ctrl + c to cl"

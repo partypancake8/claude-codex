@@ -44,7 +44,7 @@ impl ChatComposer {
             .as_ref()
             .map(ReasoningEffort::as_str)
             .unwrap_or("default");
-        Some(Line::from(format!("◐ {effort} · /model  ").dim()).right_aligned())
+        Some(Line::from(format!(" ◐ {effort} · /model  ").dim()).right_aligned())
     }
 
     pub(super) fn navigation_row_visible(&self) -> bool {

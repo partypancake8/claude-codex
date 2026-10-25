@@ -172,7 +172,7 @@ async fn initial_session_header_starts_at_the_top_of_the_viewport() {
       loading
       /tmp/project
 
-    ────────────────────────────◐ default · /model
+    ─────────────────────────── ◐ default · /model
     ❯ Ask Codex to do anything
     ");
 }

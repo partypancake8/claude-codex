@@ -7,7 +7,7 @@ pre running
 activity:
 "                                                                                "
 "⠋ Thinking (0s • esc to interrupt) · checking command policy                    "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -19,7 +19,7 @@ post running
 activity:
 "                                                                                "
 "⠋ Thinking (0s • esc to interrupt) · Running hooks                              "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -31,7 +31,7 @@ pre completed
 activity:
 "                                                                                "
 "⠋ Thinking (0s • esc to interrupt) · checking output policy                     "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -43,7 +43,7 @@ all completed
 activity:
 "                                                                                "
 "⠋ Thinking (0s • esc to interrupt)                                              "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "

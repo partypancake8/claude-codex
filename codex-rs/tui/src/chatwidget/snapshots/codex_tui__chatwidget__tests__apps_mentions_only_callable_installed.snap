@@ -3,7 +3,7 @@ source: tui/src/chatwidget/tests/popups_and_settings.rs
 assertion_line: 2315
 expression: snapshot
 ---
-────────────────────────────────────────────────────────────◐ default · /model
+─────────────────────────────────────────────────────────── ◐ default · /model
 ❯ $
 ────────────────────────────────────────────────────────────────────────────────
   Google Drive  [App] Connected files

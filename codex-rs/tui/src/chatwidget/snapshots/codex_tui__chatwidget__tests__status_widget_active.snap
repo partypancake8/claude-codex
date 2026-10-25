@@ -5,7 +5,7 @@ expression: normalized_backend_snapshot(terminal.backend())
 ---
 "                                                                                "
 "⠋ Analyzing (0s • esc to interrupt)                                             "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "

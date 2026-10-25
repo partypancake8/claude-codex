@@ -5,7 +5,7 @@ expression: "format!(\"before reveal:\\n{hidden}\\nrunning:\\n{running}\\ncomple
 ---
 before reveal:
 "                                                                                "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
@@ -13,14 +13,14 @@ before reveal:
 running:
 "                                                                                "
 "• Running hook                                                                  "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "
 "  default (shift+tab)                                                           "
 completed:
 "                                                                                "
-"────────────────────────────────────────────────────────────◐ default · /model  "
+"─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.6-sol default · /tmp/project                                            "

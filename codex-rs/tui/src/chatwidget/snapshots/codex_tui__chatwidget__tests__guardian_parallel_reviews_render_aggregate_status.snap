@@ -6,7 +6,7 @@ expression: normalize_snapshot_paths(rendered)
 ⠋ Reviewing 2 approval requests (0s • esc to interrupt)
   └ • rm -rf '/tmp/guardian target 1'
     • rm -rf '/tmp/guardian target 2'
-────────────────────────────────────────────────────◐ default · /model
+─────────────────────────────────────────────────── ◐ default · /model
 ❯ Ask Codex to do anything
 ────────────────────────────────────────────────────────────────────────
   gpt-5.6-sol default · /tmp/project

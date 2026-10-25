@@ -4,7 +4,7 @@ assertion_line: 4252
 expression: normalized_backend_snapshot(terminal.backend())
 ---
 "                                                                                "
-"──────────────────────────────────────────────────────────────◐ xhigh · /model  "
+"───────────────────────────────────────────────────────────── ◐ xhigh · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
 "  gpt-5.4 xhigh fast · Context 0% used · /tmp/project                           "

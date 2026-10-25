@@ -3,5 +3,5 @@ source: tui/src/chatwidget/tests/status_and_layout.rs
 assertion_line: 2522
 expression: normalized_backend_snapshot(terminal.backend())
 ---
-"────────────────────◐ default · /model  "
+"─────────────────── ◐ default · /model  "
 "────────────────────────────────────────"
