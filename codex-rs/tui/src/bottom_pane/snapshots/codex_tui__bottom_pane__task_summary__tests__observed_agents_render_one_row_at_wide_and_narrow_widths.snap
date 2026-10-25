@@ -1,0 +1,9 @@
+---
+source: tui/src/bottom_pane/task_summary_tests.rs
+expression: "snapshots.join(\"\\n\")"
+---
+"  3 agents · 2 working (ctrl+t)                             "
+
+"  3 agents · 2 working (ctrl+…"
+
+"  3 agents …"

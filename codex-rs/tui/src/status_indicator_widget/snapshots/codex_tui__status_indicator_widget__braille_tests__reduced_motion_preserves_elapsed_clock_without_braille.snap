@@ -1,0 +1,9 @@
+---
+source: tui/src/status_indicator_widget/braille_tests.rs
+assertion_line: 82
+expression: "frames.join(\"\\n\")"
+---
+0ms: Working (0s • esc to interrupt)
+90ms: Working (0s • esc to interrupt)
+1000ms: Working (1s • esc to interrupt)
+60000ms: Working (1m 00s • esc to interrupt)

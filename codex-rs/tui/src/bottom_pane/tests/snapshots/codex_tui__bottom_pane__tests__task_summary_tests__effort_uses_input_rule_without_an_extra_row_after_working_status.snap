@@ -1,0 +1,10 @@
+---
+source: tui/src/bottom_pane/tests/task_summary_tests.rs
+assertion_line: 216
+expression: rendered
+---
+⠋ Working (0s • esc to interrupt)                                               
+───────────────────────────────────────────────────────────────◐ high · /model  
+❯ Ask Codex to do anything                                                      
+────────────────────────────────────────────────────────────────────────────────
+  ? for shortcuts                                            100% context left

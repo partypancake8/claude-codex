@@ -1,0 +1,9 @@
+---
+source: tui/src/history_cell/tests.rs
+expression: rendered
+---
+● Shell AAAAAAAAAAAAAAAA
+  │ AAAAAAAAAAAAAAAA
+  │ AAAAAAAAAAAAAAAA
+  │ … +254 lines
+  ⎿ (no output)

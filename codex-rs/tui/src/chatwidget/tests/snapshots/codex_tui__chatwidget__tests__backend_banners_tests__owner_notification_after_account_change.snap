@@ -1,0 +1,6 @@
+---
+source: tui/src/chatwidget/tests/backend_banners_tests.rs
+assertion_line: 242
+expression: rendered
+---
+● Limit increase requested.

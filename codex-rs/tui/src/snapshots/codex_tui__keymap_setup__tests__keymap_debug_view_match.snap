@@ -1,0 +1,16 @@
+---
+source: tui/src/keymap_setup.rs
+assertion_line: 1439
+expression: rendered
+---
+Keypress Inspector
+Press any key to see what Codex receives. Esc is inspected; Ctrl+C closes.
+Tip: Codex can only inspect keys your terminal sends.
+
+Detected: ctrl + o
+Config key: ctrl-o
+Raw event: code=Char('o'), modifiers=ctrl, kind=Press
+
+Assigned actions:
+  - global.open_transcript (Open Transcript) - Open the transcript overlay. [Default]
+  - pager.close_transcript (Close Transcript) - Close the transcript overlay. [Default]

@@ -1,0 +1,52 @@
+---
+source: tui/src/chatwidget/tests/status_and_layout.rs
+assertion_line: 5417
+expression: "format!(\"{first_running_snapshot}\\n\\n{second_running_snapshot}\\n\\n{older_completed_snapshot}\\n\\n{all_completed_snapshot}\")"
+---
+pre running
+activity:
+"                                                                                "
+"⠋ Thinking (0s • esc to interrupt) · checking command policy                    "
+"────────────────────────────────────────────────────────────◐ default · /model  "
+"❯ Ask Codex to do anything                                                      "
+"────────────────────────────────────────────────────────────────────────────────"
+"  gpt-5.6-sol default · /tmp/project                                            "
+"  default                                                                       "
+history:
+<empty>
+
+post running
+activity:
+"                                                                                "
+"⠋ Thinking (0s • esc to interrupt) · Running hooks                              "
+"────────────────────────────────────────────────────────────◐ default · /model  "
+"❯ Ask Codex to do anything                                                      "
+"────────────────────────────────────────────────────────────────────────────────"
+"  gpt-5.6-sol default · /tmp/project                                            "
+"  default                                                                       "
+history:
+<empty>
+
+pre completed
+activity:
+"                                                                                "
+"⠋ Thinking (0s • esc to interrupt) · checking output policy                     "
+"────────────────────────────────────────────────────────────◐ default · /model  "
+"❯ Ask Codex to do anything                                                      "
+"────────────────────────────────────────────────────────────────────────────────"
+"  gpt-5.6-sol default · /tmp/project                                            "
+"  default                                                                       "
+history:
+<empty>
+
+all completed
+activity:
+"                                                                                "
+"⠋ Thinking (0s • esc to interrupt)                                              "
+"────────────────────────────────────────────────────────────◐ default · /model  "
+"❯ Ask Codex to do anything                                                      "
+"────────────────────────────────────────────────────────────────────────────────"
+"  gpt-5.6-sol default · /tmp/project                                            "
+"  default                                                                       "
+history:
+<empty>

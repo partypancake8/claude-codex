@@ -1,0 +1,12 @@
+---
+source: tui/src/app/tests/agents_navigation_tests.rs
+expression: rendered
+---
+  Tasks · 1 running
+  Select an agent to watch. ⌥ + ← previous, ⌥ + → next.
+
+  1. › Background terminals         Commands in the displayed conversation
+  2. ○ Main conversation (current)  Idle
+› 3. ● Reviewer                     Running · view only · Checking the event routing
+
+  Press enter to confirm or esc to go back

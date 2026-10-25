@@ -1,0 +1,9 @@
+---
+source: tui/src/bottom_pane/tests/stream_interrupt_tests.rs
+assertion_line: 20
+expression: before
+---
+────────────────────────────────────────────────────────────
+❯ Keep this draft while interrupting                        
+────────────────────────────────────────────────────────────
+  tab to queue message                   100% context left

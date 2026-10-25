@@ -1,0 +1,5 @@
+---
+source: tui/src/chatwidget/compact_status_tests.rs
+expression: "format!(\"{} · 5h 11% used · ctx 1% · {}\",\nshort_model(\"gpt-5.6-sol medium\"), counts.display())"
+---
+5.6-sol med · 5h 11% used · ctx 1% · loc +8/-6

@@ -1,0 +1,9 @@
+---
+source: tui/src/bottom_pane/task_summary_tests.rs
+expression: "frames.join(\"\\n\")"
+---
+"  ← 1 agent                             "
+
+"  1 agent (ctrl+t)                      "
+
+"  1 agent (/tasks)                      "

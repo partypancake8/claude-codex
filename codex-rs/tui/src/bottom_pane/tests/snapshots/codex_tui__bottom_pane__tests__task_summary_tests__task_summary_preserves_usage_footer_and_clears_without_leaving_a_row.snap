@@ -1,0 +1,9 @@
+---
+source: tui/src/bottom_pane/tests/task_summary_tests.rs
+expression: "render_snapshot(&pane, Rect::new(0, 0, width, pane.desired_height(width)),)"
+---
+────────────────────────────────────────────────────────────
+❯ Ask Codex to do anything                                  
+────────────────────────────────────────────────────────────
+  gpt-6 · 12% used · +10 −2                                 
+  ← 3 agents · 2 working

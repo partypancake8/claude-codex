@@ -1,0 +1,278 @@
+#!/usr/bin/env -S python3 -I
+"""Build and install this checkout as a separate, complete Codex package."""
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shlex
+import shutil
+import subprocess
+import sys
+import uuid
+
+
+ROOT = Path(__file__).resolve().parent.parent
+BUILD_ROOT = ROOT / "codex-rs" / "target" / "claude-codex-packages"
+STATUS_LINE = 'tui.status_line=["usage-resets-available","context-used-compact","weekly-used","current-dir","model-short","session-lines"]'
+MARKER = "# Managed by claude-codex installer"
+
+
+def parser():
+    cli = argparse.ArgumentParser(
+        prog="claude-codex",
+        usage="claude-codex build|install|run|status [options] [-- CODEX_ARGS...]",
+        description="Build and install this checkout without replacing another Codex installation.",
+        epilog=(
+            "Python 3.11+ and macOS or Linux are required. Build uses the pinned Rust "
+            "toolchain, a native C/C++ compiler, and network access for dependencies. "
+            "The launcher uses your normal Codex account/settings and respects CODEX_HOME. "
+            "First install writes a new package; replacing an installation needs --apply. "
+            "exit: 0 ok, 1 error, 2 usage error."
+        ),
+    )
+    cli.add_argument("command", choices=("build", "install", "run", "status"))
+    cli.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="print the plan without building, installing, or launching",
+    )
+    cli.add_argument(
+        "--apply",
+        action="store_true",
+        help="allow install to replace this tool's existing launcher and selected package",
+    )
+    cli.add_argument(
+        "--prefix",
+        type=Path,
+        default=Path.home() / ".local",
+        metavar="DIR",
+        help="install prefix (default: ~/.local)",
+    )
+    cli.add_argument(
+        "--package-dir",
+        type=Path,
+        metavar="DIR",
+        help="install an existing complete package instead of the latest local build",
+    )
+    cli.add_argument(
+        "--jobs",
+        type=int,
+        default=4,
+        metavar="N",
+        help="Cargo workers for build (default: 4)",
+    )
+    return cli
+
+
+def native_target():
+    machine = {"arm64": "aarch64", "amd64": "x86_64"}.get(
+        platform.machine().lower(), platform.machine().lower()
+    )
+    system = {"darwin": "apple-darwin", "linux": "unknown-linux-gnu"}.get(sys.platform)
+    if system is None or machine not in ("aarch64", "x86_64"):
+        raise RuntimeError(
+            "This installer supports native x86_64/aarch64 macOS and GNU Linux only; Windows and cross-compilation are not supported."
+        )
+    return f"{machine}-{system}"
+
+
+def validate_package(package, target):
+    metadata = json.loads((package / "codex-package.json").read_text())
+    expected = {
+        "layoutVersion": 1,
+        "target": target,
+        "variant": "codex",
+        "entrypoint": "bin/codex",
+        "resourcesDir": "codex-resources",
+        "pathDir": "codex-path",
+    }
+    for key, value in expected.items():
+        if metadata.get(key) != value:
+            raise RuntimeError(
+                f"Package {key} must be {value!r}, got {metadata.get(key)!r}"
+            )
+    if not isinstance(metadata.get("version"), str):
+        raise RuntimeError("Package metadata must contain a version string")
+    required = ["bin/codex", "bin/codex-code-mode-host", "codex-path/rg"]
+    if "linux" in target:
+        required.append("codex-resources/bwrap")
+    # The upstream manifest supplies patched zsh on all supported wrapper targets.
+    required.append("codex-resources/zsh/bin/zsh")
+    for name in required:
+        path = package / name
+        if not path.is_file() or not os.access(path, os.X_OK):
+            raise RuntimeError(f"Missing executable package resource: {path}")
+    return metadata
+
+
+def build(args, target):
+    destination = BUILD_ROOT / uuid.uuid4().hex
+    command = [
+        sys.executable,
+        str(ROOT / "scripts" / "build_codex_package.py"),
+        "--target",
+        target,
+        "--cargo-profile",
+        "dev-small",
+        "--package-dir",
+        str(destination),
+    ]
+    print(
+        f"Build complete CLI and Code Mode package: {shlex.join(command)}", flush=True
+    )
+    if args.dry_run:
+        return 0
+    environment = os.environ.copy()
+    environment["CODEX_REPO_ROOT"] = str(ROOT)
+    environment["CARGO_BUILD_JOBS"] = str(args.jobs)
+    if sys.platform == "darwin":
+        environment["PATH"] = "/usr/bin:/bin:" + environment.get("PATH", os.defpath)
+    subprocess.run(command, cwd=ROOT / "codex-rs", env=environment, check=True)
+    validate_package(destination, target)
+    latest = BUILD_ROOT / "latest.json"
+    pending = BUILD_ROOT / f".latest-{uuid.uuid4().hex}.json"
+    pending.write_text(json.dumps({"package": str(destination)}, indent=2) + "\n")
+    pending.replace(latest)
+    print(f"Built package: {destination}\nNext: ./scripts/claude-codex install")
+    return 0
+
+
+def launcher_text(package):
+    binary = shlex.quote(str(package / "bin" / "codex"))
+    config = shlex.quote(STATUS_LINE)
+    return f"""#!/usr/bin/env bash
+{MARKER}
+set -euo pipefail
+if [[ "${{1:-}}" == -h || "${{1:-}}" == --help ]]; then
+    cat <<'EOF'
+usage: claude-codex [-- CODEX_ARGS...]
+
+Start the installed custom Codex UI with your normal account and settings.
+Use -- --help for Codex CLI help. CODEX_HOME remains unchanged.
+options:
+  -h, --help  print this help without launching Codex
+  --          pass remaining arguments unchanged to Codex
+exit: Codex exit status, or 0 for this help
+EOF
+    exit 0
+fi
+if [[ "${{1:-}}" == -- ]]; then shift; fi
+exec {binary} --config {config} "$@"
+"""
+
+
+def install(args, target):
+    if args.package_dir is None:
+        latest = BUILD_ROOT / "latest.json"
+        if not latest.is_file():
+            if args.dry_run:
+                print(
+                    f"Would install the latest complete package recorded in {latest}; run build first."
+                )
+                return 0
+            raise RuntimeError(
+                "No completed local build. Run ./scripts/claude-codex build first."
+            )
+        package = Path(json.loads(latest.read_text())["package"])
+    else:
+        package = args.package_dir.expanduser().resolve()
+    validate_package(package, target)
+    base = args.prefix / "share" / "claude-codex"
+    current = base / "current"
+    launcher = args.prefix / "bin" / "claude-codex"
+    replacing = os.path.lexists(current) or os.path.lexists(launcher)
+    if os.path.lexists(current) and (
+        not current.is_symlink() or current.resolve().parent != base / "packages"
+    ):
+        raise RuntimeError(f"Refusing to replace an unmanaged package path: {current}")
+    if os.path.lexists(launcher) and (
+        launcher.is_symlink()
+        or not launcher.is_file()
+        or MARKER not in launcher.read_text()
+    ):
+        raise RuntimeError(f"Refusing to replace an unmanaged launcher: {launcher}")
+    print(f"Package source: {package}\nInstall under: {base}\nLauncher: {launcher}")
+    if args.dry_run or (replacing and not args.apply):
+        print(
+            "Plan only. Repeat with --apply to update this installation."
+            if replacing
+            else "Dry run: no files written."
+        )
+        return 0
+    packages = base / "packages"
+    packages.mkdir(parents=True, exist_ok=True)
+    # Unique directories preserve running sessions and earlier installs.
+    destination = packages / uuid.uuid4().hex
+    shutil.copytree(package, destination)
+    validate_package(destination, target)
+    launcher.parent.mkdir(parents=True, exist_ok=True)
+    temporary_launcher = launcher.parent / f".claude-codex-{uuid.uuid4().hex}"
+    temporary_launcher.write_text(launcher_text(current))
+    temporary_launcher.chmod(0o755)
+    pending = base / f".current-{uuid.uuid4().hex}"
+    pending.symlink_to(destination.relative_to(base), target_is_directory=True)
+    pending.replace(current)
+    temporary_launcher.replace(launcher)
+    print(f"Installed. Run {launcher} (or add {launcher.parent} to PATH).")
+    return 0
+
+
+def main(argv):
+    cli = parser()
+    own_args, separator, forwarded = partition_args(argv)
+    if "--help" in own_args or "-h" in own_args:
+        cli.print_help()
+        return 0
+    args = cli.parse_args(own_args)
+    if separator and args.command != "run":
+        cli.error("arguments after -- are only supported by run")
+    if args.jobs < 1:
+        cli.error("--jobs must be positive")
+    if args.apply and args.command != "install":
+        cli.error("--apply is only supported by install")
+    if args.package_dir is not None and args.command != "install":
+        cli.error("--package-dir is only supported by install")
+    args.prefix = args.prefix.expanduser().resolve()
+    target = native_target()
+    if args.command == "build":
+        return build(args, target)
+    if args.command == "install":
+        return install(args, target)
+    package = args.prefix / "share" / "claude-codex" / "current"
+    launcher = args.prefix / "bin" / "claude-codex"
+    if args.command == "status":
+        print(f"Package: {package}\nLauncher: {launcher}")
+        if not package.exists():
+            print("Not installed.")
+            return 0
+        metadata = validate_package(package, target)
+        print(f"Version: {metadata['version']}\nTarget: {target}")
+        with (package / "bin" / "codex").open("rb") as executable:
+            digest = hashlib.file_digest(executable, "sha256").hexdigest()
+        print(f"CLI SHA-256: {digest}")
+        return 0
+    command = [str(package / "bin" / "codex"), "--config", STATUS_LINE, *forwarded]
+    if args.dry_run:
+        print(shlex.join(command))
+        return 0
+    validate_package(package, target)
+    os.execv(command[0], command)
+
+
+def partition_args(argv):
+    if "--" in argv:
+        index = argv.index("--")
+        return argv[:index], True, argv[index + 1 :]
+    return argv, False, []
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main(sys.argv[1:]))
+    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
+        print(f"claude-codex: {error}", file=sys.stderr)
+        raise SystemExit(1)

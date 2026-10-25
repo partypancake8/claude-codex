@@ -1,0 +1,35 @@
+---
+source: tui/src/chatwidget/window_frame_tests.rs
+assertion_line: 131
+expression: "frames.join(\"\\n\\n\")"
+---
+8x4
+rows 0..1: blank
+01: ────────
+02: ❯ x
+03: ────────
+
+12x5
+rows 0..1: blank
+01: ────────────
+02: ❯ x
+03: ────────────
+04:   usage fix…
+
+24x8
+rows 0..3: blank
+03: ─────◐ medium · /model
+04: ❯ x
+05: ────────────────────────
+06:   usage fixture · loc +…
+07:   default (shift+tab)
+
+0x0
+
+
+1x1
+00: ─
+
+2x2
+00: ──
+01: ──

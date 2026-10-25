@@ -1,0 +1,10 @@
+---
+source: tui/src/chatwidget/tests/plan_mode.rs
+assertion_line: 88
+expression: "normalize_snapshot_paths(render_bottom_popup(&chat, 36))"
+---
+────────────────◐ default · /model
+❯ make a plan
+────────────────────────────────────
+  gpt-5 default · /tmp/project
+  default (shift+tab)

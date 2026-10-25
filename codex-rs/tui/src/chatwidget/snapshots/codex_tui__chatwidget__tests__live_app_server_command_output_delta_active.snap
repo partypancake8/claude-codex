@@ -1,0 +1,8 @@
+---
+source: tui/src/chatwidget/tests/app_server.rs
+assertion_line: 961
+expression: active
+---
+● Shell (running) printf 'stdout\nstderr\n'
+  ⎿ stdout
+    stderr

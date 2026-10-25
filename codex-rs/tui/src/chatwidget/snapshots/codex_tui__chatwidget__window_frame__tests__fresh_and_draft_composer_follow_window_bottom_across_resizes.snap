@@ -1,0 +1,52 @@
+---
+source: tui/src/chatwidget/window_frame_tests.rs
+assertion_line: 82
+expression: "frames.join(\"\\n\\n\")"
+---
+80x24, draft="", cursor=Some((2, 20))
+rows 0..19: blank
+19: ─────────────────────────────────────────────────────────────◐ medium · /model
+20: ❯ Ask Codex to do anything
+21: ────────────────────────────────────────────────────────────────────────────────
+22:   usage fixture · loc +10/-2
+23:   default (shift+tab)
+
+120x40, draft="", cursor=Some((2, 36))
+rows 0..35: blank
+35: ─────────────────────────────────────────────────────────────────────────────────────────────────────◐ medium · /model
+36: ❯ Ask Codex to do anything
+37: ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+38:   usage fixture · loc +10/-2
+39:   default (shift+tab)
+
+80x24, draft="", cursor=Some((2, 20))
+rows 0..19: blank
+19: ─────────────────────────────────────────────────────────────◐ medium · /model
+20: ❯ Ask Codex to do anything
+21: ────────────────────────────────────────────────────────────────────────────────
+22:   usage fixture · loc +10/-2
+23:   default (shift+tab)
+
+80x24, draft="review the layout", cursor=Some((19, 20))
+rows 0..19: blank
+19: ─────────────────────────────────────────────────────────────◐ medium · /model
+20: ❯ review the layout
+21: ────────────────────────────────────────────────────────────────────────────────
+22:   usage fixture · loc +10/-2
+23:   default (shift+tab)
+
+120x40, draft="review the layout", cursor=Some((19, 36))
+rows 0..35: blank
+35: ─────────────────────────────────────────────────────────────────────────────────────────────────────◐ medium · /model
+36: ❯ review the layout
+37: ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+38:   usage fixture · loc +10/-2
+39:   default (shift+tab)
+
+80x24, draft="review the layout", cursor=Some((19, 20))
+rows 0..19: blank
+19: ─────────────────────────────────────────────────────────────◐ medium · /model
+20: ❯ review the layout
+21: ────────────────────────────────────────────────────────────────────────────────
+22:   usage fixture · loc +10/-2
+23:   default (shift+tab)

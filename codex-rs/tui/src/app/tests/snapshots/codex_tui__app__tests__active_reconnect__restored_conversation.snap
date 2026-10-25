@@ -1,0 +1,13 @@
+---
+source: tui/src/app/tests/active_reconnect_tests.rs
+assertion_line: 274
+expression: "render_bottom_popup(&app.chat_widget, 80)"
+---
+• Queued follow-up inputs
+  ↳ old queued input
+    ⌥ + ↑ edit last queued message
+────────────────────────────────────────────────────────────◐ default · /model
+❯ kept draft
+────────────────────────────────────────────────────────────────────────────────
+  gpt-test default
+  plan (shift+tab)

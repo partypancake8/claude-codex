@@ -1,0 +1,11 @@
+---
+source: tui/src/chatwidget/tests/status_and_layout.rs
+assertion_line: 810
+expression: normalized_backend_snapshot(terminal.backend())
+---
+"                                                                                                                        "
+"────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model  "
+"❯ Ask Codex to do anything                                                                                              "
+"────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
+"  5.4 | ctx:0% | 5h:n/a | 7d:n/a | +3/-2                                                                                "
+"  default (shift+tab)                                                                                                   "

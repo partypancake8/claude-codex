@@ -1,0 +1,9 @@
+---
+source: tui/src/history_cell/tests.rs
+expression: rendered
+---
+● Shell a_very_long_toke
+  │ n_without_spaces
+  │ _to_force_wrappi
+  │ … +1 lines
+  ⎿ (no output)

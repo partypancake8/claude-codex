@@ -1,0 +1,12 @@
+---
+source: tui/src/chatwidget/tests/status_and_layout.rs
+assertion_line: 2142
+expression: "rendered_cases.join(\"\\n---\\n\")"
+---
+● Limit increase requested.
+
+---
+● A limit increase was already requested recently.
+
+---
+● Could not request a limit increase. Please try again.

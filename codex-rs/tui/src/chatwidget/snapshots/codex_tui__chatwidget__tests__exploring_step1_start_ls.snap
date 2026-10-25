@@ -1,0 +1,7 @@
+---
+source: tui/src/chatwidget/tests/exec_flow.rs
+assertion_line: 1163
+expression: active_blob(&chat)
+---
+● Exploring
+  ⎿ List ls -la

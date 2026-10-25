@@ -1,0 +1,34 @@
+# Reviewed upstream test fixtures and non-secret literals.
+# These are exact findings from `gitleaks dir .`, not directory-wide exclusions.
+# Public upstream test-only RSA fixture.
+codex-rs/agent-identity/src/lib.rs:private-key:832
+# Public upstream synthetic authentication fixture.
+codex-rs/app-server/tests/suite/v2/connection_handling_websocket.rs:generic-api-key:306
+# Public example idempotency UUID.
+codex-rs/app-server/README.md:generic-api-key:2781
+# Dependency name crypto_secretbox; no credential value.
+codex-rs/Cargo.lock:generic-api-key:5432
+# Public upstream synthetic authentication fixture.
+codex-rs/cli/tests/cloud_auth.rs:generic-api-key:26
+# Public upstream synthetic authentication fixture.
+codex-rs/cli/src/login.rs:generic-api-key:630
+# Public upstream synthetic authentication fixture.
+codex-rs/cli/src/login.rs:generic-api-key:636
+# Public upstream synthetic authentication fixture.
+codex-rs/cli/tests/login.rs:generic-api-key:283
+# Public upstream synthetic authentication fixture.
+codex-rs/cli/tests/login.rs:generic-api-key:299
+# Public upstream synthetic authentication fixture.
+codex-rs/codex-mcp/src/trusted_access_tests.rs:generic-api-key:260
+# Public upstream synthetic authentication fixture.
+codex-rs/codex-mcp/src/connection_manager_tests.rs:generic-api-key:5598
+# FNV hash offset constant; no credential value.
+codex-rs/core-plugins/src/remote/catalog_cache.rs:generic-api-key:175
+# Public upstream synthetic authentication fixture.
+codex-rs/exec/tests/suite/apply_patch.rs:jwt:200
+# Public upstream test-only RSA fixture.
+codex-rs/login/src/auth/agent_identity.rs:private-key:573
+# Synthetic credential pattern in sanitizer test.
+codex-rs/secrets/src/sanitizer.rs:aws-access-token:52
+# Public upstream test-only RSA fixture.
+codex-rs/login/src/auth/auth_tests.rs:private-key:2826

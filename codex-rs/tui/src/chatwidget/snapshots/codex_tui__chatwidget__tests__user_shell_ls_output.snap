@@ -1,0 +1,8 @@
+---
+source: tui/src/chatwidget/tests/exec_flow.rs
+assertion_line: 1231
+expression: blob
+---
+● Your shell ls
+  ⎿ file1
+    file2

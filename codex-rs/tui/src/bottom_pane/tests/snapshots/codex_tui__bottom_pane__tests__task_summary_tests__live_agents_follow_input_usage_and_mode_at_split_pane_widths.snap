@@ -1,0 +1,38 @@
+---
+source: tui/src/bottom_pane/tests/task_summary_tests.rs
+assertion_line: 125
+expression: "frames.join(\"\\n\\n\")"
+---
+60 columns:
+────────────────────────────────────────────────────────────
+❯ draft stays editable                                      
+────────────────────────────────────────────────────────────
+  resets:0 | ctx:2% | 7d:8%                                 
+  default (shift+tab) · 1 agent · 1 working (ctrl+t)        
+  subagents · /tasks to watch                               
+  ● reviewer · Running                                      
+    Inspecting native thread updates.                       
+
+60 columns, constrained:
+────────────────────────────────────────────────────────────
+❯ draft stays editable                                      
+────────────────────────────────────────────────────────────
+  resets:0 | ctx:2% | 7d:8%                                 
+  default (shift+tab) · 1 agent · 1 working (ctrl+t)        
+
+49 columns:
+─────────────────────────────────────────────────
+❯ draft stays editable                           
+─────────────────────────────────────────────────
+  resets:0 | ctx:2% | 7d:8%                      
+  default (shift+tab) · 1 agent · 1 working (ctr…
+  subagents · /tasks to watch                    
+  ● reviewer · Running                           
+    Inspecting native thread updates.            
+
+49 columns, constrained:
+─────────────────────────────────────────────────
+❯ draft stays editable                           
+─────────────────────────────────────────────────
+  resets:0 | ctx:2% | 7d:8%                      
+  default (shift+tab) · 1 agent · 1 working (ctr…

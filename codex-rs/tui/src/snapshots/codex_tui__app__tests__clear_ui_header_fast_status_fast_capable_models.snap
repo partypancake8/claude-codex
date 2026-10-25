@@ -1,0 +1,7 @@
+---
+source: tui/src/app/tests.rs
+expression: rendered
+---
+  Codex v<VERSION>
+  gpt-5.4 · xhigh · fast
+  /tmp/project

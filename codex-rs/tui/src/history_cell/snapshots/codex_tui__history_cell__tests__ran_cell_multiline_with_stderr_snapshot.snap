@@ -1,0 +1,12 @@
+---
+source: tui/src/history_cell/tests.rs
+expression: rendered
+---
+● Shell (failed) echo
+  │ this_is_a_v
+  │ ery_long_si
+  │ … +5 lines
+  ⎿ error: first line on
+    stderr
+    error: second line on
+    stderr

@@ -1,0 +1,8 @@
+---
+source: tui/src/history_cell.rs
+expression: rendered
+---
+● Shell set -o pipefail
+  │ cargo test -p codex-tui
+  │ --quiet
+  ⎿ (no output)

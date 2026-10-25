@@ -1,0 +1,11 @@
+---
+source: tui/src/chatwidget/tests/status_and_layout.rs
+assertion_line: 4218
+expression: normalized_backend_snapshot(terminal.backend())
+---
+"                                                                                "
+"───────────────────────────────────────────────────────────────◐ high · /model  "
+"❯ Ask Codex to do anything                                                      "
+"────────────────────────────────────────────────────────────────────────────────"
+"  gpt-5.2 high · Roadmap cleanup                                                "
+"  default (shift+tab)                                                           "

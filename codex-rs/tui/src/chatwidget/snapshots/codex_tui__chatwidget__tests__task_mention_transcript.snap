@@ -1,0 +1,7 @@
+---
+source: tui/src/chatwidget/tests/composer_submission.rs
+assertion_line: 2309
+expression: rendered
+---
+
+❯ Inspect @Review database migration

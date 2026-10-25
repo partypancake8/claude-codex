@@ -1,0 +1,112 @@
+---
+source: tui/src/chatwidget/tests/compact_footer_states.rs
+assertion_line: 116
+expression: "normalize_snapshot_paths(snapshots.join(\"\\n\\n\"))"
+---
+idle, 80 columns:
+
+
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default (shift+tab)
+
+idle, 120 columns:
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default (shift+tab)
+
+draft, 80 columns:
+
+
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default (shift+tab)
+
+draft, 120 columns:
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default (shift+tab)
+
+working, 80 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default
+
+working, 120 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default
+
+working with draft, 80 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · tab to queue
+
+working with draft, 120 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · tab to queue
+
+watching agent, 80 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · Reviewer · ← 1 agent · 1 working
+
+watching agent, 120 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · Reviewer · ← 1 agent · 1 working
+
+watching agent with draft, 80 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · Reviewer · tab to queue · 1 agent · 1 working (ctrl+t)
+
+watching agent with draft, 120 columns:
+
+⠋ Working (0s • esc to interrupt)
+────────────────────────────────────────────────────────────────────────────────────────────────────◐ default · /model
+❯ Please check the result
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  resets:1 | ctx:0% | 7d:44% | /tmp/project | 5.4 | +2/-1
+  default · Reviewer · tab to queue · 1 agent · 1 working (ctrl+t)
