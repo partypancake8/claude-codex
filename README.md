@@ -4,7 +4,7 @@ A Claude Code-inspired terminal interface with compact status and live agent vie
 
 This fork gives Codex a compact composer, a muted 8-bit palette, an animated swyr mascot, and a persistent view of its child agents. It uses Codex's models, authentication, tools, approvals, and session handling.
 
-![claude-codex startup, composer, and working indicator](media/demo.gif)
+![claude-codex startup, composer, and working indicator](media/demo.gif?v=2)
 
 ## Interface
 
@@ -14,7 +14,7 @@ This fork gives Codex a compact composer, a muted 8-bit palette, an animated swy
 - **Visible agents.** A panel below the input and footer shows running, finished, and failed children with their latest activity. The task picker opens individual agent views without losing the parent draft.
 - **Original artwork.** The swyr pixel mascot animates beside the model and directory in terminals with supported graphics. Other terminals use a text header.
 
-![Live child activity, task selection, and completion](media/agents.gif)
+![Live child activity and completion](media/agents.gif?v=2)
 
 The GIFs show scripted example conversations. See the [UI comparison](UI-COMPARISON.md) for the Claude Code references and the differences in behavior.
 
