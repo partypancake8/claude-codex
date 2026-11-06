@@ -2,6 +2,8 @@
 //!
 //! Embedded question inputs keep their existing compact layout. The app-owned bottom pane
 //! places navigation below the composer. Effort shares its top rule when width permits.
+//! Usage wraps in narrow panes so trailing model/edit fields remain available. Layout and
+//! rendering share the same wrapping calculation; constrained heights still favor input.
 
 use super::*;
 
@@ -22,6 +24,32 @@ impl ChatComposer {
             ))
         .then(|| self.footer.status_line_value.clone())
         .flatten()
+    }
+
+    pub(super) fn wrapped_persistent_status_lines(&self, width: u16) -> Option<Vec<Line<'static>>> {
+        if self.custom_footer_height().is_some() {
+            return None;
+        }
+        let line = self.persistent_status_line()?;
+        let available = usize::from(width).saturating_sub(FOOTER_INDENT_COLS);
+        if available == 0 || line.width() <= available {
+            return None;
+        }
+        let options = crate::wrapping::RtOptions::new(available)
+            .word_separator(textwrap::WordSeparator::AsciiSpace)
+            .word_splitter(textwrap::WordSplitter::NoHyphenation);
+        let mut lines = crate::wrapping::word_wrap_lines([line], options.clone());
+        // Contextual instructions must survive alongside the expanded usage bar.
+        let context = self
+            .footer
+            .side_conversation_context_label
+            .as_ref()
+            .map(|label| side_conversation_context_line(label))
+            .or_else(|| self.shell_mode_footer_line());
+        if let Some(context) = context {
+            lines.extend(crate::wrapping::word_wrap_lines([context], options));
+        }
+        Some(lines)
     }
 
     fn queue_hint_in_navigation(&self) -> bool {
@@ -57,6 +85,7 @@ impl ChatComposer {
             && !self.popup_active()
             && (self.collaboration_modes_enabled
                 || self.footer.collaboration_mode_indicator.is_some()
+                || self.command_center_enabled
                 || self.agents_navigation_enabled
                 || self.footer.active_agent_label.is_some()
                 || self.queue_hint_in_navigation())
@@ -116,6 +145,12 @@ impl ChatComposer {
                 line.push_span(" · ".dim());
             }
             line.push_span(label.clone().dim());
+        }
+        if self.agents_navigation_available() && !self.has_child_agents {
+            if !line.spans.is_empty() {
+                line.push_span(" · ".dim());
+            }
+            line.push_span("← for agents".dim());
         }
         if self.queue_hint_in_navigation()
             && let Some(key) = self.footer.queue_key

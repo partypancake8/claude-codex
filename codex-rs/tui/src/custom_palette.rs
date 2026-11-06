@@ -1,6 +1,6 @@
 //! Muted xterm-256 accents for the custom Codex UI surfaces.
 
-// This UI uses fixed muted 8-bit accents instead of the terminal's
+// Sawyer explicitly requested fixed muted 8-bit accents instead of the terminal's
 // potentially bright ANSI palette. Keep that exception local to custom chrome.
 #![allow(clippy::disallowed_methods)]
 

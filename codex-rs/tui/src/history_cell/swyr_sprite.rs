@@ -1,4 +1,4 @@
-//! Original swyrbot artwork by swyr, rendered as native terminal image pixels.
+//! Sawyer's original website swyrbot, rendered as native terminal image pixels.
 //!
 //! Bitmap and idle/wave/dance transforms are ported from swyr.com_V3-redesign's
 //! public/js/swyrbot.js, commit 7d3d977. The negative-space S is the face.

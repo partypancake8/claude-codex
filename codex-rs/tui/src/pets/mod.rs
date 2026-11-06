@@ -46,9 +46,13 @@ pub(crate) use image_protocol::PetImageSupport;
 pub(crate) use image_protocol::PetImageUnsupportedReason;
 #[cfg(not(test))]
 pub(crate) use image_protocol::detect_pet_image_support;
+pub(crate) use image_protocol::kitty_delete_image;
+pub(crate) use image_protocol::kitty_transmit_png_file_with_id;
+pub(crate) use image_protocol::kitty_transmit_png_with_id;
 pub(crate) use picker::PET_PICKER_VIEW_ID;
 pub(crate) use picker::build_pet_picker_params;
 pub(crate) use preview::PetPickerPreviewState;
+pub(crate) use sixel::encode_rgba;
 
 pub(crate) const DEFAULT_PET_ID: &str = "codex";
 pub(crate) const DISABLED_PET_ID: &str = "disabled";
@@ -376,7 +380,7 @@ mod tests {
         let output = String::from_utf8(output).unwrap();
         assert!(output.contains("a=d,d=I,i=49374,q=2;"));
         assert!(output.contains("\x1b[4;3H"));
-        assert!(output.contains("a=T,t=f,f=100,c=4,r=2,q=2,i=49374;"));
+        assert!(output.contains("a=T,t=f,f=100,c=4,r=2,q=2,i=49374,C=1;"));
         assert!(!output.contains("cG5n"));
         assert!(output.contains("\x1b8"));
     }

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use codex_app_server_protocol::PatchApplyStatus;
 use codex_app_server_protocol::PatchChangeKind;
-use codex_app_server_protocol::ThreadItem;
+use codex_app_server_protocol::ThreadItemPayload as ThreadItem;
 use sha2::Digest;
 use sha2::Sha256;
 

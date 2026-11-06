@@ -1,0 +1,21 @@
+---
+source: tui/src/app/tests/realtime_requests.rs
+expression: "normalize_voice_snapshot_directory(&rendered, &app.config.cwd)"
+---
+  Codex v0.0.0
+  gpt-test
+  /tmp/project
+
+❯ show <code> & tests
+
+● spoken answer
+
+❯ typed words
+
+
+❯ show <code> & tests
+
+
+❯ typed words
+
+● different caption

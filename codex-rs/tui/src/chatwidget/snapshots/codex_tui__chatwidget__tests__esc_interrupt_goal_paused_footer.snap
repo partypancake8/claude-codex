@@ -1,6 +1,5 @@
 ---
 source: tui/src/chatwidget/tests/status_and_layout.rs
-assertion_line: 2274
 expression: snapshot
 ---
 "                                                                                "
@@ -8,5 +7,5 @@ expression: snapshot
 "─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
-"  gpt-5.6-sol default · /tmp/project                                            "
+"  GPT-5.6-Sol default · /tmp/project                                            "
 "  default · Goal paused (/goal resume)                                          "

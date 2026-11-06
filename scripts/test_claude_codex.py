@@ -36,9 +36,9 @@ class InstallerTests(unittest.TestCase):
         for name in (
             "bin/codex",
             "bin/codex-code-mode-host",
+            "bin/codex-exec-server",
             "codex-path/rg",
             "codex-resources/bwrap",
-            "codex-resources/zsh/bin/zsh",
         ):
             path = self.package / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,6 +62,19 @@ class InstallerTests(unittest.TestCase):
             str(self.package),
             *extra,
             success=success,
+        )
+
+    def test_installed_update_dispatch_preserves_prefix(self):
+        self.install()
+        result = subprocess.run(
+            [str(self.prefix / "bin/claude-codex"), "update", "--dry-run"],
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(str(self.prefix / "share/claude-codex"), result.stdout)
+        self.assertFalse(
+            (self.prefix / "share/claude-codex/update-status.json").exists()
         )
 
     def test_help_and_dry_run_do_not_write(self):
@@ -88,7 +101,12 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(result.stdout),
                 {
-                    "args": ["--config", MODULE["STATUS_LINE"], *arguments],
+                    "args": [
+                        part
+                        for setting in [*MODULE["UI_CONFIG"], MODULE["STATUS_LINE"]]
+                        for part in ["--config", setting]
+                    ]
+                    + arguments,
                     "home": env["CODEX_HOME"],
                 },
             )

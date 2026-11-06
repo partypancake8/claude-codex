@@ -21,6 +21,7 @@ use super::types::CancellableRequest;
 use super::types::DeferredWait;
 use super::types::DeliveredExecute;
 use super::types::DriverCommand;
+use super::types::ObservationYield;
 use super::types::PendingRequest;
 use super::types::RemoteSession;
 
@@ -29,31 +30,39 @@ impl ConnectionDriver {
         match command {
             DriverCommand::OpenSession {
                 session,
-                delegate,
                 limits,
                 cleanup,
                 caller_cancellation,
                 response_tx,
-            } => self.open_session(
-                session,
-                delegate,
-                limits,
-                cleanup,
-                caller_cancellation,
-                response_tx,
-            ),
+            } => self.open_session(session, limits, cleanup, caller_cancellation, response_tx),
             DriverCommand::Execute {
                 session,
                 request,
+                delegate,
                 caller_cancellation,
+                yield_signal,
                 response_tx,
-            } => self.execute(session, request, caller_cancellation, response_tx),
+            } => self.execute(
+                session,
+                request,
+                delegate,
+                caller_cancellation,
+                yield_signal,
+                response_tx,
+            ),
             DriverCommand::Wait {
                 session,
                 request,
                 caller_cancellation,
+                yield_signal,
                 response_tx,
-            } => self.wait(session, request, caller_cancellation, response_tx),
+            } => self.wait(
+                session,
+                request,
+                caller_cancellation,
+                yield_signal,
+                response_tx,
+            ),
             DriverCommand::Terminate {
                 session,
                 cell_id,
@@ -69,7 +78,6 @@ impl ConnectionDriver {
     fn open_session(
         &mut self,
         session: RemoteSession,
-        delegate: Arc<dyn CodeModeSessionDelegate>,
         limits: CodeModeSessionCellExecutionLimits,
         cleanup: super::cleanup::SessionCleanup,
         caller_cancellation: CancellationToken,
@@ -104,6 +112,7 @@ impl ConnectionDriver {
                 session_id: session.id.clone(),
                 cell_execution_limits: (limits != WireSessionCellExecutionLimits::default())
                     .then_some(limits),
+                output_truncation: None,
             },
         };
         let frame = match EncodedFrame::encode(&message) {
@@ -120,7 +129,6 @@ impl ConnectionDriver {
             request_id,
             PendingRequest::OpenSession {
                 session,
-                delegate,
                 cleanup,
                 cancellation,
                 response_tx,
@@ -134,7 +142,9 @@ impl ConnectionDriver {
         &mut self,
         session: RemoteSession,
         request: ExecuteRequest,
+        delegate: Arc<dyn CodeModeSessionDelegate>,
         caller_cancellation: CancellationToken,
+        yield_signal: Option<CancellationToken>,
         response_tx: oneshot::Sender<Result<DeliveredExecute, String>>,
     ) -> bool {
         if let Err(err) = self.sessions.require_ready(&session) {
@@ -179,10 +189,12 @@ impl ConnectionDriver {
             request_id,
             PendingRequest::Execute {
                 session,
+                delegate,
                 response_tx,
                 initial_response_tx,
                 initial_response_rx,
                 cancellation,
+                yield_observation: ObservationYield::new(yield_signal),
             },
             &self.event_tx,
         );
@@ -194,6 +206,7 @@ impl ConnectionDriver {
         session: RemoteSession,
         request: WaitRequest,
         caller_cancellation: CancellationToken,
+        yield_signal: Option<CancellationToken>,
         response_tx: oneshot::Sender<Result<WaitOutcome, String>>,
     ) -> bool {
         if let Err(err) = self.sessions.require_ready(&session) {
@@ -212,11 +225,18 @@ impl ConnectionDriver {
                 session,
                 request,
                 caller_cancellation,
+                yield_signal,
                 response_tx,
             });
             return true;
         }
-        self.start_wait(session, request, caller_cancellation, response_tx)
+        self.start_wait(
+            session,
+            request,
+            caller_cancellation,
+            yield_signal,
+            response_tx,
+        )
     }
 
     pub(super) fn start_wait(
@@ -224,6 +244,7 @@ impl ConnectionDriver {
         session: RemoteSession,
         request: WireWaitRequest,
         caller_cancellation: CancellationToken,
+        yield_signal: Option<CancellationToken>,
         response_tx: oneshot::Sender<Result<WaitOutcome, String>>,
     ) -> bool {
         let cell_id = request.cell_id.clone();
@@ -231,11 +252,13 @@ impl ConnectionDriver {
             HostRequest::Wait {
                 session_id: session.id.clone(),
                 request,
+                max_output_tokens: None,
             },
             PendingRequest::Wait {
                 session,
                 cell_id,
                 cancellation: CancellableRequest::new(caller_cancellation),
+                yield_observation: ObservationYield::new(yield_signal),
                 response_tx,
             },
         )
@@ -263,6 +286,7 @@ impl ConnectionDriver {
             HostRequest::Terminate {
                 session_id: session.id.clone(),
                 cell_id,
+                max_output_tokens: None,
             },
             PendingRequest::Terminate {
                 session,

@@ -16,6 +16,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD_ROOT = ROOT / "codex-rs" / "target" / "claude-codex-packages"
+UI_CONFIG = ['tui.alternate_screen="always"', "check_for_update_on_startup=false"]
 STATUS_LINE = 'tui.status_line=["usage-resets-available","context-used-compact","weekly-used","current-dir","model-short","session-lines"]'
 MARKER = "# Managed by claude-codex installer"
 
@@ -97,11 +98,14 @@ def validate_package(package, target):
             )
     if not isinstance(metadata.get("version"), str):
         raise RuntimeError("Package metadata must contain a version string")
-    required = ["bin/codex", "bin/codex-code-mode-host", "codex-path/rg"]
+    required = [
+        "bin/codex",
+        "bin/codex-code-mode-host",
+        "bin/codex-exec-server",
+        "codex-path/rg",
+    ]
     if "linux" in target:
         required.append("codex-resources/bwrap")
-    # The upstream manifest supplies patched zsh on all supported wrapper targets.
-    required.append("codex-resources/zsh/bin/zsh")
     for name in required:
         path = package / name
         if not path.is_file() or not os.access(path, os.X_OK):
@@ -129,6 +133,7 @@ def build(args, target):
     environment = os.environ.copy()
     environment["CODEX_REPO_ROOT"] = str(ROOT)
     environment["CARGO_BUILD_JOBS"] = str(args.jobs)
+    environment["CARGO_NET_GIT_FETCH_WITH_CLI"] = "true"
     if sys.platform == "darwin":
         environment["PATH"] = "/usr/bin:/bin:" + environment.get("PATH", os.defpath)
     subprocess.run(command, cwd=ROOT / "codex-rs", env=environment, check=True)
@@ -143,13 +148,21 @@ def build(args, target):
 
 def launcher_text(package):
     binary = shlex.quote(str(package / "bin" / "codex"))
-    config = shlex.quote(STATUS_LINE)
+    config = shlex.join(
+        [
+            part
+            for setting in [*UI_CONFIG, STATUS_LINE]
+            for part in ["--config", setting]
+        ]
+    )
+    updater = shlex.quote(str(package.parent / "claude-codex-update"))
+    prefix = shlex.quote(str(package.parent.parent.parent))
     return f"""#!/usr/bin/env bash
 {MARKER}
 set -euo pipefail
 if [[ "${{1:-}}" == -h || "${{1:-}}" == --help ]]; then
     cat <<'EOF'
-usage: claude-codex [-- CODEX_ARGS...]
+usage: claude-codex [update|autoupdate on|off|status] [-- CODEX_ARGS...]
 
 Start the installed custom Codex UI with your normal account and settings.
 Use -- --help for Codex CLI help. CODEX_HOME remains unchanged.
@@ -160,8 +173,11 @@ exit: Codex exit status, or 0 for this help
 EOF
     exit 0
 fi
+case "${{1:-}}" in
+    update|autoupdate) exec {updater} "$@" --prefix {prefix} ;;
+esac
 if [[ "${{1:-}}" == -- ]]; then shift; fi
-exec {binary} --config {config} "$@"
+exec {binary} {config} "$@"
 """
 
 
@@ -209,6 +225,11 @@ def install(args, target):
     destination = packages / uuid.uuid4().hex
     shutil.copytree(package, destination)
     validate_package(destination, target)
+    updater = base / "claude-codex-update"
+    pending_updater = base / (".updater-" + uuid.uuid4().hex)
+    shutil.copy2(ROOT / "scripts/claude-codex-update", pending_updater)
+    pending_updater.chmod(0o755)
+    pending_updater.replace(updater)
     launcher.parent.mkdir(parents=True, exist_ok=True)
     temporary_launcher = launcher.parent / f".claude-codex-{uuid.uuid4().hex}"
     temporary_launcher.write_text(launcher_text(current))
@@ -255,7 +276,15 @@ def main(argv):
             digest = hashlib.file_digest(executable, "sha256").hexdigest()
         print(f"CLI SHA-256: {digest}")
         return 0
-    command = [str(package / "bin" / "codex"), "--config", STATUS_LINE, *forwarded]
+    command = [
+        str(package / "bin" / "codex"),
+        *[
+            part
+            for setting in [*UI_CONFIG, STATUS_LINE]
+            for part in ["--config", setting]
+        ],
+        *forwarded,
+    ]
     if args.dry_run:
         print(shlex.join(command))
         return 0

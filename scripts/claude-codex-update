@@ -1,0 +1,298 @@
+#!/usr/bin/env -S python3 -I
+"""Install verified claude-codex releases and optionally check daily on macOS."""
+
+import argparse
+from datetime import datetime, timezone
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import plistlib
+import re
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import urllib.request
+import uuid
+
+REPOSITORY = "partypancake8/claude-codex"
+TAG = re.compile(r"ui-v(\d+\.\d+\.\d+)-(\d+)")
+LABEL = "com.swyr.claude-codex-update"
+
+
+def read_json(path):
+    return json.loads(path.read_text()) if path.exists() else {}
+
+
+def write_json(path, value):
+    pending = path.with_name("." + path.name + "-" + uuid.uuid4().hex)
+    pending.write_text(json.dumps(value, indent=2) + "\n")
+    pending.replace(path)
+
+
+def native_target():
+    cpu = {"arm64": "aarch64", "amd64": "x86_64"}.get(
+        platform.machine().lower(), platform.machine().lower()
+    )
+    system = {"darwin": "apple-darwin", "linux": "unknown-linux-gnu"}.get(sys.platform)
+    if cpu not in ("aarch64", "x86_64") or not system:
+        raise RuntimeError("Release installs support native macOS and GNU Linux only.")
+    return f"{cpu}-{system}"
+
+
+def download(url, destination):
+    request = urllib.request.Request(
+        url, headers={"User-Agent": "claude-codex-updater"}
+    )
+    with (
+        urllib.request.urlopen(request, timeout=120) as response,
+        destination.open("wb") as output,
+    ):
+        shutil.copyfileobj(response, output)
+
+
+def latest_release():
+    request = urllib.request.Request(
+        f"https://api.github.com/repos/{REPOSITORY}/releases/latest",
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "claude-codex-updater",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        release = json.load(response)
+    if (
+        release.get("draft")
+        or release.get("prerelease")
+        or not TAG.fullmatch(release["tag_name"])
+    ):
+        raise RuntimeError("No stable custom UI release is available.")
+    return release
+
+
+def validate_package(package, version, target):
+    metadata = read_json(package / "codex-package.json")
+    for key, expected in dict(
+        version=version, target=target, variant="codex", entrypoint="bin/codex"
+    ).items():
+        if metadata.get(key) != expected:
+            raise RuntimeError(f"Package {key} does not match {expected}.")
+    required = [
+        "bin/codex",
+        "bin/codex-code-mode-host",
+        "bin/codex-exec-server",
+        "codex-path/rg",
+    ]
+    if "linux" in target:
+        required.append("codex-resources/bwrap")
+    for name in required:
+        path = package / name
+        if not path.resolve().is_relative_to(package.resolve()) or not os.access(
+            path, os.X_OK
+        ):
+            raise RuntimeError(f"Package is missing a valid {name}.")
+    actual = subprocess.check_output(
+        [str(package / "bin/codex"), "--version"], text=True, timeout=30
+    ).strip()
+    if actual != f"codex-cli {version}":
+        raise RuntimeError(f"Package reports unexpected version: {actual}")
+
+
+def install_release(base, release, target):
+    tag = release["tag_name"]
+    match = TAG.fullmatch(tag)
+    if not match:
+        raise RuntimeError("Invalid release tag.")
+    version = match[1]
+    name = f"claude-codex-{target}.tar.gz"
+    assets = {
+        asset["name"]: asset["browser_download_url"] for asset in release["assets"]
+    }
+    if name not in assets or name + ".sha256" not in assets:
+        raise RuntimeError(f"Release {tag} has no tested package for {target}.")
+    for asset in (name, name + ".sha256"):
+        expected = f"https://github.com/{REPOSITORY}/releases/download/{tag}/{asset}"
+        if assets[asset] != expected:
+            raise RuntimeError("Release asset points outside the expected repository.")
+    packages = base / "packages"
+    packages.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".update-", dir=packages) as temporary:
+        temporary = Path(temporary)
+        archive = temporary / name
+        checksum = temporary / (name + ".sha256")
+        download(assets[name + ".sha256"], checksum)
+        expected = checksum.read_text().split()
+        if (
+            len(expected) != 2
+            or expected[1].lstrip("*") != name
+            or not re.fullmatch("[a-fA-F0-9]{64}", expected[0])
+        ):
+            raise RuntimeError("Invalid release checksum manifest.")
+        download(assets[name], archive)
+        with archive.open("rb") as source:
+            actual = hashlib.file_digest(source, "sha256").hexdigest()
+        if actual.lower() != expected[0].lower():
+            raise RuntimeError("Release checksum mismatch; installed package was kept.")
+        package = temporary / "package"
+        package.mkdir()
+        with tarfile.open(archive) as bundle:
+            bundle.extractall(package, filter="data")
+        validate_package(package, version, target)
+        write_json(
+            package / "claude-codex-release.json", {"tag": tag, "sha256": actual}
+        )
+        current = base / "current"
+        if os.path.lexists(current) and (
+            not current.is_symlink() or current.resolve().parent != packages.resolve()
+        ):
+            raise RuntimeError("Refusing to replace an unmanaged current directory.")
+        destination = packages / (tag + "-" + uuid.uuid4().hex[:8])
+        package.replace(destination)
+        pending = base / (".current-" + uuid.uuid4().hex)
+        pending.symlink_to(destination.relative_to(base))
+        pending.replace(current)
+    return version
+
+
+def update(base, dry_run, scheduled):
+    if dry_run:
+        print(
+            f"Would check {REPOSITORY} releases, verify the native package, and atomically select it under {base}."
+        )
+        return 0
+    base.mkdir(parents=True, exist_ok=True)
+    with (base / "update.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("Another update is already running.")
+            return 0
+        status = {"checked_at": datetime.now(timezone.utc).isoformat()}
+        try:
+            release = latest_release()
+            tag = release["tag_name"]
+            status["target"] = tag
+            installed = read_json(base / "current" / "claude-codex-release.json").get(
+                "tag"
+            )
+            version = read_json(base / "current" / "codex-package.json").get(
+                "version", "0.0.0"
+            )
+            latest_match = TAG.fullmatch(tag)
+            installed_match = TAG.fullmatch(installed or "")
+            latest_order = (*map(int, latest_match[1].split(".")), int(latest_match[2]))
+            installed_order = (
+                (*map(int, installed_match[1].split(".")), int(installed_match[2]))
+                if installed_match
+                else (*map(int, version.split(".")), 0)
+            )
+            if latest_order <= installed_order:
+                status["result"] = "up to date"
+                print(f"claude-codex {version} is up to date.")
+            else:
+                version = install_release(base, release, native_target())
+                status["result"] = "updated"
+                print(
+                    f"Installed claude-codex {version}. New sessions use this build; running sessions continue."
+                )
+        except (
+            OSError,
+            ValueError,
+            KeyError,
+            RuntimeError,
+            tarfile.TarError,
+            subprocess.SubprocessError,
+        ) as error:
+            status.update(result="failed", error=str(error))
+            print(f"claude-codex update: {error}", file=sys.stderr)
+            return 0 if scheduled else 1
+        finally:
+            write_json(base / "update-status.json", status)
+    return 0
+
+
+def autoupdate(base, mode, dry_run):
+    plist = Path.home() / "Library/LaunchAgents" / (LABEL + ".plist")
+    if mode == "status":
+        print("Automatic updates:", "enabled" if plist.exists() else "disabled")
+        status = read_json(base / "update-status.json")
+        for key, value in status.items():
+            print(f"{key.replace('_', ' ').capitalize()}: {value}")
+        return 0
+    if sys.platform != "darwin":
+        raise RuntimeError(
+            "Automatic scheduling currently requires macOS. Run claude-codex update manually on Linux."
+        )
+    if dry_run:
+        print(f"Would turn automatic updates {mode}: {plist}")
+        return 0
+    service = f"gui/{os.getuid()}/{LABEL}"
+    loaded = (
+        subprocess.run(["launchctl", "print", service], capture_output=True).returncode
+        == 0
+    )
+    if loaded:
+        subprocess.run(["launchctl", "bootout", service], check=True)
+    if mode == "off":
+        plist.unlink(missing_ok=True)
+        print("Automatic updates disabled.")
+        return 0
+    base.mkdir(parents=True, exist_ok=True)
+    plist.parent.mkdir(parents=True, exist_ok=True)
+    pending = plist.with_suffix(".pending")
+    pending.write_bytes(
+        plistlib.dumps(
+            {
+                "Label": LABEL,
+                "ProgramArguments": [
+                    sys.executable,
+                    "-I",
+                    str(Path(__file__).resolve()),
+                    "update",
+                    "--prefix",
+                    str(base.parent.parent),
+                    "--scheduled",
+                ],
+                "StartInterval": 86400,
+                "RunAtLoad": True,
+                "ProcessType": "Background",
+                "StandardOutPath": str(base / "automatic.log"),
+                "StandardErrorPath": str(base / "automatic.log"),
+            }
+        )
+    )
+    pending.replace(plist)
+    subprocess.run(["launchctl", "enable", service], check=True)
+    subprocess.run(
+        ["launchctl", "bootstrap", f"gui/{os.getuid()}", str(plist)], check=True
+    )
+    print("Automatic updates enabled: daily and at login.")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", choices=["update", "autoupdate"])
+    parser.add_argument("mode", nargs="?", choices=["on", "off", "status"])
+    parser.add_argument("--prefix", type=Path, default=Path.home() / ".local")
+    parser.add_argument("-n", "--dry-run", action="store_true")
+    parser.add_argument("--scheduled", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if args.mode and args.command != "autoupdate":
+        parser.error("on/off/status only applies to autoupdate")
+    base = args.prefix.expanduser().resolve() / "share/claude-codex"
+    if args.command == "update":
+        return update(base, args.dry_run, args.scheduled)
+    return autoupdate(base, args.mode or "status", args.dry_run)
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"claude-codex-update: {error}", file=sys.stderr)
+        raise SystemExit(1)

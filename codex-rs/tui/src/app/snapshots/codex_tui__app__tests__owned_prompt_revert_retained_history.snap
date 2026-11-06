@@ -1,0 +1,18 @@
+---
+source: tui/src/app/tests.rs
+expression: transcript
+---
+  Codex v0.0.0
+  GPT-5.6-Sol
+  /tmp/project
+
+
+❯ retained prompt
+
+  [Image #1]
+  [Image #2]
+
+❯ selected prompt [Image #1]
+
+
+• Conversation reverted to this point. File changes are unchanged.

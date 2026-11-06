@@ -32,3 +32,18 @@ codex-rs/login/src/auth/agent_identity.rs:private-key:573
 codex-rs/secrets/src/sanitizer.rs:aws-access-token:52
 # Public upstream test-only RSA fixture.
 codex-rs/login/src/auth/auth_tests.rs:private-key:2826
+
+# Reviewed 0.166.0 upstream test credentials, dependency name and FNV hash constant.
+codex-rs/Cargo.lock:generic-api-key:6155
+codex-rs/cli/tests/exec_server_websocket_auth.rs:generic-api-key:40
+codex-rs/cli/tests/login.rs:generic-api-key:419
+codex-rs/cli/tests/login.rs:generic-api-key:435
+codex-rs/cli/src/login.rs:generic-api-key:752
+codex-rs/cli/src/login.rs:generic-api-key:758
+codex-rs/codex-mcp/src/connection_manager_tests.rs:generic-api-key:6907
+codex-rs/cli/src/doctor/output.rs:aws-access-token:1890
+codex-rs/cli/src/doctor/output.rs:aws-access-token:1891
+codex-rs/core-plugins/src/remote/catalog_cache.rs:generic-api-key:312
+codex-rs/exec/tests/suite/apply_patch.rs:jwt:404
+codex-rs/ext/guardian-v2/src/async_scorer/sampler_routing_tests.rs:generic-api-key:232
+codex-rs/login/src/auth/auth_tests.rs:private-key:2906

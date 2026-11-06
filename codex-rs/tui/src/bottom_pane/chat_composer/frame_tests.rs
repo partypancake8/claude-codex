@@ -122,3 +122,58 @@ fn tiny_suggestion_popups_preserve_editable_prompt() {
     }
     insta::assert_snapshot!(frames.join("\n\n"));
 }
+
+#[test]
+fn narrow_usage_footer_keeps_model_and_edits_across_draft_and_resize() {
+    let (mut composer, _rx) = new_test_composer();
+    composer.use_separate_navigation_row();
+    composer.set_status_line_enabled(/*enabled*/ true);
+    composer.set_status_line(Some(Line::from(
+        "resets:0 | ctx:10% | 7d:44% | ~/src/codex-custom | 6-astra | +120/-30",
+    )));
+    let mut frames = Vec::new();
+    for (draft, running) in [
+        ("", false),
+        ("follow-up draft", true),
+        ("follow-up draft", false),
+    ] {
+        composer.set_text_content(draft.to_string(), Vec::new(), Vec::new());
+        composer.set_task_running(running);
+        for width in [120, 49, 60, 80, 49, 120] {
+            let height = composer.desired_height(width);
+            let area = Rect::new(/*x*/ 0, /*y*/ 0, width, height);
+            let mut buffer = Buffer::empty(area);
+            composer.render(area, &mut buffer);
+            let rows = (0..height)
+                .map(|y| {
+                    (0..width)
+                        .map(|x| buffer[(x, y)].symbol())
+                        .collect::<String>()
+                        .trim_end()
+                        .to_string()
+                })
+                .collect::<Vec<_>>();
+            let rendered = rows.join("\n");
+            for field in [
+                "resets:0",
+                "ctx:10%",
+                "7d:44%",
+                "~/src/codex-custom",
+                "6-astra",
+                "+120/-30",
+            ] {
+                assert!(
+                    rendered.contains(field),
+                    "missing {field} at {width} columns:\n{rendered}"
+                );
+            }
+            assert_eq!(height, if width < 80 { 5 } else { 4 });
+            let (_, cursor_y) = composer.cursor_pos(area).expect("editable prompt");
+            assert!(rows[usize::from(cursor_y)].starts_with("❯ "));
+            frames.push(format!(
+                "{width} columns / draft={draft:?} / running={running}:\n{rendered}"
+            ));
+        }
+    }
+    insta::assert_snapshot!(frames.join("\n\n"));
+}

@@ -1,0 +1,14 @@
+---
+source: tui/src/transcript_view/copy_mode_tests.rs
+expression: rows
+---
+         | ● Before
+         | 
+selected |    A      B
+selected |   ━━━━━  ━━━━━
+selected |    x      y
+         | 
+         |   After
+         | 
+         | 
+         |

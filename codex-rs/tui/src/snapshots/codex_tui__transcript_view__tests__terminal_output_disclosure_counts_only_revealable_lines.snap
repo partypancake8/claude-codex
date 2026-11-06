@@ -1,0 +1,33 @@
+---
+source: tui/src/transcript_view_tests.rs
+expression: "frames.join(\"\\n\\n\")"
+---
+three visible
+● Shell echo
+  ⎿ a
+    b
+    c
+
+one hidden
+● Shell echo
+  ⎿ b
+    c
+    d
+    + 1 line (⌃o to expand)
+
+clipped line
+● Shell echo
+  ⎿ abcdefghijklmno…
+    + 1 line
+
+command only
+● Shell echo a …
+  ⎿ (no output)
+    + Show details
+
+storage truncated
+● Shell (running) echo
+  ⎿ x
+    x
+    x
+    + 97 lines (⌃o to expand)

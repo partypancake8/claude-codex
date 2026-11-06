@@ -1,0 +1,12 @@
+---
+source: tui/src/app/tests.rs
+expression: "normalize_snapshot_paths(render_bottom_popup(&app.chat_widget, 80))"
+---
+─────────────────────────────────────────────────────────── ◐ default · /model
+❯ Viewing sub-agent — direct input is disabled
+────────────────────────────────────────────────────────────────────────────────
+  GPT-6.1-Sol default · /tmp/project
+  default (shift+tab) · child-1 [worker] · ← 2 agents
+  subagents · /tasks to watch
+  ✓ child-0 [worker] · Finished
+  ✓ child-1 [worker] · Finished

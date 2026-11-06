@@ -1,0 +1,6 @@
+---
+source: tui/src/app/tests/new_session_tests.rs
+expression: composer_lines
+---
+─────────────────────────────────────────────────────────── ◐ default · /model
+❯ new line

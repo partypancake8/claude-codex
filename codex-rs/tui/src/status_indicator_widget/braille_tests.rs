@@ -9,6 +9,7 @@ fn braille_loop_keeps_working_fixed_as_elapsed_clock_advances() {
         AppEventSender::new(tx),
         FrameRequester::test_dummy(),
         /*animations_enabled*/ true,
+        Default::default(),
     );
     let mut timer = StatusTimer::default();
     timer.pause_at(timer.last_resume_at);
@@ -65,6 +66,7 @@ fn reduced_motion_preserves_elapsed_clock_without_braille() {
         AppEventSender::new(tx),
         FrameRequester::test_dummy(),
         /*animations_enabled*/ false,
+        Default::default(),
     );
     let mut timer = StatusTimer::default();
     timer.pause_at(timer.last_resume_at);

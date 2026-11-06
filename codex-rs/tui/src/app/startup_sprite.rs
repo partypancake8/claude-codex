@@ -10,11 +10,22 @@ use ratatui::layout::Size;
 impl App {
     pub(super) fn render_startup_sprite(&self, tui: &mut Tui, screen_size: Size) -> Result<()> {
         if self.overlay.is_some()
+            || (tui.is_owned_screen() && self.transcript_view.is_detailed())
             || self.chat_widget.has_active_view()
             || self.chat_widget.raw_output_mode()
-            || self.transcript_cells.len() > usize::from(screen_size.height)
         {
             return tui.clear_startup_sprite().map_err(Into::into);
+        }
+        if tui.is_owned_screen() {
+            return match self
+                .transcript_view
+                .startup_sprite_area(&self.transcript_cells)
+            {
+                Some(area) => tui
+                    .draw_startup_sprite(area, self.local_settings.tui.animations)
+                    .map_err(Into::into),
+                None => tui.clear_startup_sprite().map_err(Into::into),
+            };
         }
         let width = self.chat_widget.history_wrap_width(screen_size.width);
         let Some(mut area) = SessionInfoCell::sprite_area(width) else {
@@ -49,7 +60,7 @@ impl App {
         }
         if let Some(offset) = header_offset {
             area.y = area.y.saturating_add(offset as u16);
-            tui.draw_startup_sprite(area, self.config.animations)?;
+            tui.draw_startup_sprite(area, self.local_settings.tui.animations)?;
         } else {
             tui.clear_startup_sprite()?;
         }

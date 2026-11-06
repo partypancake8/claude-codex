@@ -12,6 +12,16 @@ empty (48 columns):
 ────────────────────────────────────────────────
   ? for shortcuts
 ---
+configured (48 columns):
+  Codex v<VERSION>
+  loading
+  workspace
+
+────────────────────────────────────────────────
+❯ Ask Codex to do anything
+────────────────────────────────────────────────
+  ? for shortcuts
+---
 resuming (48 columns):
   Codex v<VERSION>
   loading

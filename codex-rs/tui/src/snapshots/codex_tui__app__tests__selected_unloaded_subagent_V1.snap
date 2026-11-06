@@ -1,0 +1,11 @@
+---
+source: tui/src/app/tests.rs
+expression: "normalize_snapshot_paths(render_bottom_popup(&app.chat_widget, 80))"
+---
+─────────────────────────────────────────────────────────── ◐ default · /model
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  GPT-6.1-Sol default · /tmp/project
+  default (shift+tab) · child-0 [worker] · ← 1 agent
+  subagents · /tasks to watch
+  ✓ child-0 [worker] · Finished

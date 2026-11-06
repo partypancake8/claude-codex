@@ -11,6 +11,7 @@ use codex_protocol::config_types::Personality;
 use codex_protocol::config_types::ReasoningSummary;
 use codex_protocol::models::FunctionCallOutputBody;
 use codex_protocol::models::ImageDetail;
+use codex_protocol::models::ImageReference as CoreImageReference;
 use codex_protocol::openai_models::ReasoningEffort;
 use codex_protocol::plan_tool::PlanItemArg as CorePlanItemArg;
 use codex_protocol::plan_tool::StepStatus as CorePlanStepStatus;
@@ -115,9 +116,12 @@ pub enum AdditionalContextKind {
 pub struct AdditionalContextEntry {
     pub value: String,
     pub kind: AdditionalContextKind,
+    /// Optional name for untrusted context, used to label its tool output.
+    #[ts(optional = nullable)]
+    pub name: Option<String>,
 }
 
-/// Requested cyber treatment for a ChatGPT-authenticated Codex turn.
+/// Requested cyber treatment for an OpenAI model turn.
 /// Authorization and model-tier restrictions remain server-owned.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
@@ -139,6 +143,16 @@ impl From<CyberAccessProgram> for CoreCyberAccessProgram {
     }
 }
 
+impl From<CoreCyberAccessProgram> for CyberAccessProgram {
+    fn from(value: CoreCyberAccessProgram) -> Self {
+        match value {
+            CoreCyberAccessProgram::Standard => Self::Standard,
+            CoreCyberAccessProgram::DaybreakBlue => Self::DaybreakBlue,
+            CoreCyberAccessProgram::DaybreakRed => Self::DaybreakRed,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export_to = "v2/")]
@@ -146,6 +160,9 @@ pub struct TurnToolOutput {
     pub name: String,
     pub namespace: Option<String>,
     pub output: FunctionCallOutputBody,
+    /// Requests retention of this output in the thread's model history.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub retain: bool,
 }
 
 #[derive(
@@ -155,6 +172,10 @@ pub struct TurnToolOutput {
 #[ts(export_to = "v2/")]
 pub struct TurnStartParams {
     pub thread_id: String,
+    /// Replace this thread's disabled plugin IDs.
+    /// Omitted/null preserves the list; [] clears it.
+    #[ts(optional = nullable)]
+    pub disabled_plugin_ids: Option<Vec<String>>,
     #[ts(optional = nullable)]
     pub client_user_message_id: Option<String>,
     pub input: Vec<UserInput>,
@@ -162,9 +183,25 @@ pub struct TurnStartParams {
     /// Ignored when this request steers an already-active turn.
     #[ts(optional = nullable)]
     pub turn_trigger: Option<String>,
+    /// ID of the turn that caused this new turn to start.
+    ///
+    /// Set this when starting work on behalf of another turn, such as delegated
+    /// work in a different thread. Leave unset for work started directly by the
+    /// user. Ignored when this request adds input to an active turn.
+    #[ts(optional = nullable)]
+    pub parent_turn_id: Option<String>,
+    /// ID of the first turn in the chain of work that led to this new turn.
+    ///
+    /// When setting `parentTurnId`, set this to the parent turn's `rootTurnId`
+    /// when known. This keeps descendant work attributed to the original turn.
+    /// If omitted, the new turn becomes its own root. Ignored when this request
+    /// adds input to an active turn.
+    #[ts(optional = nullable)]
+    pub root_turn_id: Option<String>,
     #[ts(optional = nullable)]
     pub tool_output: Option<Box<TurnToolOutput>>,
     /// Optional metadata to enrich Codex's ResponsesAPI turn metadata.
+    /// Replaces unprotected client-provided entries when supplied; an empty map clears them.
     ///
     /// Entries are flattened into the JSON string sent as
     /// `client_metadata["x-codex-turn-metadata"]` on ResponsesAPI HTTP and websocket requests.
@@ -174,6 +211,11 @@ pub struct TurnStartParams {
     #[experimental("turn/start.responsesapiClientMetadata")]
     #[ts(optional = nullable)]
     pub responsesapi_client_metadata: Option<HashMap<String, String>>,
+    /// Merge entries into the ResponsesAPI turn metadata without removing existing entries.
+    /// Applied after `responsesapiClientMetadata` if both are provided; reserved keys remain protected.
+    #[experimental("turn/start.responsesapiClientMetadataPatch")]
+    #[ts(optional = nullable)]
+    pub responsesapi_client_metadata_patch: Option<HashMap<String, String>>,
     /// Optional client-provided context fragments keyed by an opaque source identifier.
     #[experimental("turn/start.additionalContext")]
     #[ts(optional = nullable)]
@@ -233,7 +275,8 @@ pub struct TurnStartParams {
     /// Override the reasoning summary for this turn and subsequent turns.
     #[ts(optional = nullable)]
     pub summary: Option<ReasoningSummary>,
-    /// Override the personality for this turn and subsequent turns.
+    /// @deprecated `friendly` and `pragmatic` no longer select a style.
+    /// Changing this does not rewrite the thread's existing instructions.
     #[ts(optional = nullable)]
     pub personality: Option<Personality>,
     /// Optional JSON Schema used to constrain the final assistant message for
@@ -255,7 +298,7 @@ pub struct TurnStartParams {
     #[ts(optional = nullable)]
     pub multi_agent_mode: Option<MultiAgentMode>,
 
-    /// EXPERIMENTAL - Request a workspace-authorized cyber program for this
+    /// EXPERIMENTAL - Request an authorized cyber program for this
     /// turn. Omission preserves automatic behavior. This does not grant access.
     #[experimental("turn/start.cyberAccessProgram")]
     #[ts(optional = nullable)]
@@ -280,6 +323,7 @@ pub struct TurnSteerParams {
     pub client_user_message_id: Option<String>,
     pub input: Vec<UserInput>,
     /// Optional metadata to enrich Codex's ResponsesAPI turn metadata.
+    /// Replaces unprotected client-provided entries when supplied; an empty map clears them.
     ///
     /// Entries are flattened into the JSON string sent as
     /// `client_metadata["x-codex-turn-metadata"]` on ResponsesAPI HTTP and websocket requests.
@@ -289,6 +333,11 @@ pub struct TurnSteerParams {
     #[experimental("turn/steer.responsesapiClientMetadata")]
     #[ts(optional = nullable)]
     pub responsesapi_client_metadata: Option<HashMap<String, String>>,
+    /// Merge entries into the ResponsesAPI turn metadata without removing existing entries.
+    /// Applied after `responsesapiClientMetadata` if both are provided; reserved keys remain protected.
+    #[experimental("turn/steer.responsesapiClientMetadataPatch")]
+    #[ts(optional = nullable)]
+    pub responsesapi_client_metadata_patch: Option<HashMap<String, String>>,
     /// Optional client-provided context fragments keyed by an opaque source identifier.
     #[experimental("turn/steer.additionalContext")]
     #[ts(optional = nullable)]
@@ -388,6 +437,21 @@ impl From<TextElement> for CoreTextElement {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
+#[serde(untagged)]
+#[ts(untagged)]
+#[ts(export_to = "v2/")]
+pub enum ImageReference {
+    Inline {
+        url: String,
+    },
+    File {
+        #[serde(rename = "fileId")]
+        #[ts(rename = "fileId")]
+        file_id: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema, TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(tag = "type")]
 #[ts(export_to = "v2/")]
@@ -399,10 +463,11 @@ pub enum UserInput {
         text_elements: Vec<TextElement>,
     },
     Image {
+        #[serde(flatten)]
+        image: ImageReference,
         #[serde(default)]
         #[ts(optional)]
         detail: Option<ImageDetail>,
-        url: String,
     },
     LocalImage {
         #[serde(default)]
@@ -436,8 +501,11 @@ impl UserInput {
                 text,
                 text_elements: text_elements.into_iter().map(Into::into).collect(),
             },
-            UserInput::Image { url, detail } => CoreUserInput::Image {
-                image_url: url,
+            UserInput::Image { image, detail } => CoreUserInput::Image {
+                image: match image {
+                    ImageReference::Inline { url } => CoreImageReference::Inline { image_url: url },
+                    ImageReference::File { file_id } => CoreImageReference::File { file_id },
+                },
                 detail,
             },
             UserInput::LocalImage { path, detail } => CoreUserInput::LocalImage { path, detail },
@@ -459,8 +527,13 @@ impl From<CoreUserInput> for UserInput {
                 text,
                 text_elements: text_elements.into_iter().map(Into::into).collect(),
             },
-            CoreUserInput::Image { image_url, detail } => UserInput::Image {
-                url: image_url,
+            CoreUserInput::Image { image, detail } => UserInput::Image {
+                image: match image {
+                    CoreImageReference::Inline { image_url } => {
+                        ImageReference::Inline { url: image_url }
+                    }
+                    CoreImageReference::File { file_id } => ImageReference::File { file_id },
+                },
                 detail,
             },
             CoreUserInput::LocalImage { path, detail } => UserInput::LocalImage { path, detail },

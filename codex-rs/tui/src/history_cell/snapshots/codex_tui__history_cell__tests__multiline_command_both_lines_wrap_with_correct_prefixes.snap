@@ -5,5 +5,5 @@ expression: rendered
 ● Shell first_token_is_long_
   │ enough_to_wrap
   │ second_token_is_also_lon
-  │ … +1 lines
+  │ … +1 line
   ⎿ (no output)

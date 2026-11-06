@@ -14,14 +14,15 @@ rows 0..1: blank
 01: ────────────
 02: ❯ x
 03: ────────────
-04:   usage fix…
+04:   usage
 
 24x8
-rows 0..3: blank
-03: ──── ◐ medium · /model
-04: ❯ x
-05: ────────────────────────
-06:   usage fixture · loc +…
+rows 0..2: blank
+02: ──── ◐ medium · /model
+03: ❯ x
+04: ────────────────────────
+05:   usage fixture · loc
+06:   +10/-2
 07:   default (shift+tab)
 
 0x0

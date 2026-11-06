@@ -58,7 +58,7 @@ fn live_agents_follow_input_usage_and_mode_at_split_pane_widths() {
     pane.set_status_line_enabled(/*enabled*/ true);
     pane.set_status_line(Some(Line::from("resets:0 | ctx:2% | 7d:8%")));
     pane.set_collaboration_modes_enabled(/*enabled*/ true);
-    pane.set_agents_navigation_enabled(/*enabled*/ true);
+    pane.set_command_center_enabled(/*enabled*/ true);
     pane.set_task_summary(/*total*/ 1, /*working*/ 1);
     pane.insert_str("draft stays editable");
     let row = LiveAgentRow {
@@ -132,7 +132,7 @@ fn effort_and_mode_frame_the_compact_usage_footer() {
         "5h:12% | 7d:28% | context:9% | loc +10/-2",
     )));
     pane.set_collaboration_modes_enabled(/*enabled*/ true);
-    pane.set_agents_navigation_enabled(/*enabled*/ true);
+    pane.set_command_center_enabled(/*enabled*/ true);
     pane.set_active_reasoning_effort_baseline(Some(&ReasoningEffort::Medium));
     let width = 100;
     let mut frames = Vec::new();

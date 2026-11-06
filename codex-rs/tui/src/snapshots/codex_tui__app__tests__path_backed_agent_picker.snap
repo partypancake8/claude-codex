@@ -3,9 +3,10 @@ source: tui/src/app/tests.rs
 expression: "render_bottom_popup(&app.chat_widget, 80)"
 ---
   Tasks · 1 running
-  Select an agent to watch. ⌥ + ← previous, ⌥ + → next.
+  Select an agent to watch. ⌥← previous, ⌥→ next.
+
 
   1. › Background terminals  Commands in the displayed conversation
 › 2. ● worker                Running
 
-  Press enter to confirm or esc to go back
+  enter select · esc back

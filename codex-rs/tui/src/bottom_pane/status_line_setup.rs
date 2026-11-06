@@ -9,7 +9,8 @@
 //!
 //! # Available Status Line Items
 //!
-//! - Model information (name, reasoning level)
+//! - Model information (name, reasoning level, provider)
+//! - Named configuration profile
 //! - Directory paths (current dir, project root)
 //! - Machine hostname
 //! - Git information (branch name)
@@ -70,7 +71,7 @@ pub(crate) enum StatusLineItem {
     #[strum(to_string = "model", serialize = "model-name")]
     ModelName,
 
-    /// Model name with reasoning level suffix.
+    /// Model name with reasoning level and processing tier.
     ModelWithReasoning,
 
     /// Current reasoning level.
@@ -150,13 +151,19 @@ pub(crate) enum StatusLineItem {
     #[strum(to_string = "thread-id", serialize = "session-id")]
     SessionId,
 
-    /// Whether Fast mode is currently active.
+    /// Effective processing tier for the current model.
     FastMode,
+
+    /// Whether Daybreak is enabled for this thread.
+    Daybreak,
 
     /// Whether raw scrollback mode is currently active.
     RawOutput,
 
-    /// Current thread title (if set by user).
+    /// Current thread name, omitted when unnamed.
+    ThreadName,
+
+    /// Current thread title, falling back to its identifier when unnamed.
     ThreadTitle,
 
     /// Current workspace notification headline.
@@ -164,6 +171,13 @@ pub(crate) enum StatusLineItem {
 
     /// Latest checklist task progress from `update_plan` (if available).
     TaskProgress,
+
+    /// Named config profile selected for this invocation.
+    Profile,
+
+    /// Model provider ID for the active thread.
+    #[strum(to_string = "provider", serialize = "model-provider")]
+    Provider,
 }
 
 impl StatusLineItem {
@@ -179,6 +193,10 @@ impl StatusLineItem {
             StatusLineItem::ModelName => "Current model name",
             StatusLineItem::ModelWithReasoning => "Current model name with reasoning level",
             StatusLineItem::Reasoning => "Current reasoning level",
+            StatusLineItem::Profile => {
+                "Config profile selected with --profile (omitted when unset)"
+            }
+            StatusLineItem::Provider => "Model provider for the active thread",
             StatusLineItem::CurrentDir => "Current working directory",
             StatusLineItem::ProjectRoot => "Project name (omitted when unavailable)",
             StatusLineItem::Hostname => "Current machine hostname (omitted when unavailable)",
@@ -218,8 +236,10 @@ impl StatusLineItem {
                 "Estimated current-thread cost in USD (Enterprise workspaces only; omitted when unavailable)"
             }
             StatusLineItem::SessionId => "Current thread identifier (omitted until thread starts)",
-            StatusLineItem::FastMode => "Whether Fast mode is currently active",
+            StatusLineItem::FastMode => "Effective processing tier for the current model",
+            StatusLineItem::Daybreak => "Whether Daybreak is enabled for this thread",
             StatusLineItem::RawOutput => "Whether raw scrollback mode is active",
+            StatusLineItem::ThreadName => "Current thread name (omitted when unnamed)",
             StatusLineItem::ThreadTitle => {
                 "Current thread title, or thread identifier when unnamed"
             }
@@ -243,6 +263,8 @@ impl StatusLineItem {
             StatusLineItem::ModelName => StatusSurfacePreviewItem::Model,
             StatusLineItem::ModelWithReasoning => StatusSurfacePreviewItem::ModelWithReasoning,
             StatusLineItem::Reasoning => StatusSurfacePreviewItem::Reasoning,
+            StatusLineItem::Profile => StatusSurfacePreviewItem::Profile,
+            StatusLineItem::Provider => StatusSurfacePreviewItem::Provider,
             StatusLineItem::CurrentDir => StatusSurfacePreviewItem::CurrentDir,
             StatusLineItem::ProjectRoot => StatusSurfacePreviewItem::ProjectRoot,
             StatusLineItem::Hostname => StatusSurfacePreviewItem::Hostname,
@@ -265,7 +287,9 @@ impl StatusLineItem {
             StatusLineItem::EstimatedThreadCost => StatusSurfacePreviewItem::EstimatedThreadCost,
             StatusLineItem::SessionId => StatusSurfacePreviewItem::SessionId,
             StatusLineItem::FastMode => StatusSurfacePreviewItem::FastMode,
+            StatusLineItem::Daybreak => StatusSurfacePreviewItem::Daybreak,
             StatusLineItem::RawOutput => StatusSurfacePreviewItem::RawOutput,
+            StatusLineItem::ThreadName => StatusSurfacePreviewItem::ThreadName,
             StatusLineItem::ThreadTitle => StatusSurfacePreviewItem::ThreadTitle,
             StatusLineItem::WorkspaceHeadline => StatusSurfacePreviewItem::WorkspaceHeadline,
             StatusLineItem::TaskProgress => StatusSurfacePreviewItem::TaskProgress,
@@ -417,6 +441,10 @@ impl StatusLineSetupView {
 impl BottomPaneView for StatusLineSetupView {
     fn keymap_contexts(&self) -> crate::keymap::KeymapContextSet {
         crate::keymap::KeymapContextSet::new(crate::keymap::KeymapContext::List)
+    }
+
+    fn accepts_input_when_disconnected(&self) -> bool {
+        true
     }
 
     fn handle_key_event(&mut self, key_event: crossterm::event::KeyEvent) {

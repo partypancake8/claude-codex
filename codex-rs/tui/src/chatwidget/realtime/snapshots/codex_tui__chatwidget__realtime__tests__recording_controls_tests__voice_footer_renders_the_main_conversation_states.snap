@@ -1,0 +1,62 @@
+---
+source: tui/src/chatwidget/realtime/recording_controls_tests.rs
+expression: "states.join(\"\\n\\n\")"
+---
+connecting:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ◌ connecting                                                 /voice stop
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)
+
+listening:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ● listening                                      f9 mute     /voice stop
+   mic ▁▁▁▁▁▁  codex ▁▁▁▁▁▁
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)
+
+speaking:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ● speaking                                       f9 mute     /voice stop
+   mic ▁▁▇▇▇▇  codex ▁▁████
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)
+
+muted:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ◌ muted                                          f9 unmute   /voice stop
+   mic ▁▁▁▁▁▁  codex ▁▁▇▇▇▇
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)
+
+transcript:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ● speaking                                       f9 mute     /voice stop
+   mic ▁▁▄▄▄▄  codex ▁▁▄▄▄▄
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)
+
+interrupted:
+─────────────────────────────────────────────────────────── ◐ default · /model
+ voice ● heard                                          f9 mute     /voice stop
+   mic ▁▁▄▄▄▄  codex ▁▁▄▄▄▄
+
+❯ Ask Codex to do anything
+────────────────────────────────────────────────────────────────────────────────
+  status line stays visible
+  default (shift+tab)

@@ -5,8 +5,8 @@ use ratatui::layout::Rect;
 #[tokio::test]
 async fn configured_usage_stays_visible_while_working_drafting_and_watching_agents() {
     let (mut chat, _events, _operations) = make_chatwidget_manual(Some("gpt-5.4")).await;
-    chat.show_welcome_banner = false;
-    chat.config.tui_status_line = Some(
+    chat.local_settings.tui.show_tooltips = false;
+    chat.local_settings.tui.status_line = Some(
         [
             "usage-resets-available",
             "context-used-compact",
@@ -20,7 +20,7 @@ async fn configured_usage_stays_visible_while_working_drafting_and_watching_agen
     );
     chat.session_lines.record(
         "visible-footer",
-        &AppServerThreadItem::FileChange {
+        &codex_app_server_protocol::ThreadItemPayload::FileChange {
             id: "edit".to_string(),
             status: AppServerPatchApplyStatus::Completed,
             changes: vec![FileUpdateChange {
@@ -63,7 +63,7 @@ async fn configured_usage_stays_visible_while_working_drafting_and_watching_agen
     chat.refresh_status_line();
     let configured = status_line_text(&chat).expect("configured status line");
     chat.bottom_pane.set_collaboration_modes_enabled(true);
-    chat.bottom_pane.set_agents_navigation_enabled(true);
+    chat.bottom_pane.set_command_center_enabled(true);
     let mut snapshots = Vec::new();
     for (name, running, draft, child) in [
         ("idle", false, "", false),
@@ -83,7 +83,7 @@ async fn configured_usage_stays_visible_while_working_drafting_and_watching_agen
             .set_composer_text(draft.to_string(), Vec::new(), Vec::new());
         chat.set_active_agent_label(child.then(|| "Reviewer".to_string()));
         chat.set_task_summary(usize::from(child), usize::from(child));
-        for width in [80, 120] {
+        for width in [49, 60, 80, 120] {
             let area = Rect::new(0, 0, width, 24);
             let mut buffer = Buffer::empty(area);
             chat.render(area, &mut buffer);
@@ -96,10 +96,12 @@ async fn configured_usage_stays_visible_while_working_drafting_and_watching_agen
                         .to_string()
                 })
                 .collect::<Vec<_>>();
-            assert!(
-                rows.iter().any(|row| row.contains(&configured)),
-                "configured usage hidden in {name} at {width} columns: {rows:?}"
-            );
+            for field in configured.split(" | ") {
+                assert!(
+                    rows.iter().any(|row| row.contains(field)),
+                    "configured field {field} hidden in {name} at {width} columns: {rows:?}"
+                );
+            }
             assert!(!rows.iter().any(|row| row.contains("context left")));
             let (cursor_x, cursor_y) = chat.cursor_pos(area).expect("editable prompt");
             assert!(cursor_x < width && cursor_y < area.height);

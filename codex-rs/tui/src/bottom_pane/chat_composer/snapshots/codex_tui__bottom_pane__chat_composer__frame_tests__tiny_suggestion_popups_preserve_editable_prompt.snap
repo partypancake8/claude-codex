@@ -1,6 +1,5 @@
 ---
 source: tui/src/bottom_pane/chat_composer/frame_tests.rs
-assertion_line: 84
 expression: "frames.join(\"\\n\\n\")"
 ---
 /mo / 3 rows:
@@ -12,7 +11,7 @@ expression: "frames.join(\"\\n\\n\")"
 ─────────────────────────────────────────────────
 ❯ /mo                                            
 ─────────────────────────────────────────────────
-  /model  choose what model and reasoning effort 
+                              100% context left  
 
 @src / 3 rows:
 ─────────────────────────────────────────────────
@@ -23,4 +22,4 @@ expression: "frames.join(\"\\n\\n\")"
 ─────────────────────────────────────────────────
 ❯ @src                                           
 ─────────────────────────────────────────────────
-  src/main.rs
+                              100% context left

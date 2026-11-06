@@ -5,6 +5,5 @@ expression: rendered
 ● Shell (failed) seq 1 10 1>&2 && false
   ⎿ 1
     2
-    … +6 lines (ctrl + o to view transcript)
-    9
-    10
+    3
+    +7 lines (⌃o to view transcript)

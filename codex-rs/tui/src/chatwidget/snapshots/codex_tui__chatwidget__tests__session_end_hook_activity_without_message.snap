@@ -1,6 +1,5 @@
 ---
 source: tui/src/chatwidget/tests/status_and_layout.rs
-assertion_line: 5340
 expression: "format!(\"before reveal:\\n{hidden}\\nrunning:\\n{running}\\ncompleted:\\n{}\",\nhook_status_frame(&chat, 80),)"
 ---
 before reveal:
@@ -8,7 +7,7 @@ before reveal:
 "─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
-"  gpt-5.6-sol default · /tmp/project                                            "
+"  GPT-5.6-Sol default · /tmp/project                                            "
 "  default (shift+tab)                                                           "
 running:
 "                                                                                "
@@ -16,12 +15,12 @@ running:
 "─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
-"  gpt-5.6-sol default · /tmp/project                                            "
+"  GPT-5.6-Sol default · /tmp/project                                            "
 "  default (shift+tab)                                                           "
 completed:
 "                                                                                "
 "─────────────────────────────────────────────────────────── ◐ default · /model  "
 "❯ Ask Codex to do anything                                                      "
 "────────────────────────────────────────────────────────────────────────────────"
-"  gpt-5.6-sol default · /tmp/project                                            "
+"  GPT-5.6-Sol default · /tmp/project                                            "
 "  default (shift+tab)                                                           "

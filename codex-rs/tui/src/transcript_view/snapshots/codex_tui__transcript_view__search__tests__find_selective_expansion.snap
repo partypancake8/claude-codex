@@ -1,0 +1,19 @@
+---
+source: tui/src/transcript_view/search_tests.rs
+expression: "crate::transcript_view::tests::text(&buffer)"
+---
+● Shell (running) 'echo visible …
+  ⎿ (no output)
+    + Show details
+
+● Shell (running) 'echo visible …
+  ⎿ (no output)
+    + Show details
+
+$ 'echo visible
+    echo hidden newer needle'
+    − Hide details
+
+$ 'echo visible
+    echo hidden manual'
+    − Hide details

@@ -1,4 +1,4 @@
-//! Bounded activity previews and authoritative status for the live task picker.
+//! Bounded, best-effort previews for the v2 `/subagents` status output.
 
 use super::ThreadBufferedEvent;
 use super::ThreadEventStore;
@@ -7,17 +7,141 @@ use crate::custom_palette::AMBER;
 use crate::custom_palette::ROSE;
 use crate::custom_palette::SAGE;
 use crate::custom_palette::YELLOW;
+use crate::history_cell::HistoryCell;
+use crate::history_cell::plain_lines;
 use crate::multi_agents::AgentPickerThreadEntry;
+use crate::style::accent_color;
 use crate::text_formatting::truncate_text;
 use codex_app_server_protocol::CollabAgentTool;
 use codex_app_server_protocol::ServerNotification;
 use codex_app_server_protocol::SubAgentActivityKind;
-use codex_app_server_protocol::ThreadItem;
+use codex_app_server_protocol::ThreadItemPayload;
 use codex_app_server_protocol::TurnStatus;
 use ratatui::style::Stylize;
+use ratatui::text::Line;
 use ratatui::text::Span;
+use std::collections::HashSet;
 
-const AGENT_STATUS_PREVIEW_GRAPHEMES: usize = 120;
+const AGENT_STATUS_PREVIEW_LINES: usize = 3;
+const AGENT_STATUS_PREVIEW_ITEMS: usize = 6;
+const AGENT_STATUS_PREVIEW_GRAPHEMES: usize = 240;
+const AGENT_STATUS_PREVIEW_INDENT: u16 = 4;
+
+#[derive(Debug)]
+pub(super) struct AgentStatusHistoryCell {
+    entries: Vec<AgentStatusThreadPreview>,
+}
+
+impl AgentStatusHistoryCell {
+    pub(super) fn new(entries: Vec<AgentStatusThreadPreview>) -> Self {
+        Self { entries }
+    }
+}
+
+impl HistoryCell for AgentStatusHistoryCell {
+    fn display_lines(&self, width: u16) -> Vec<Line<'static>> {
+        let mut lines: Vec<Line<'static>> = vec![
+            "/subagents".magenta().into(),
+            "Sub-agents running".bold().into(),
+            "".into(),
+        ];
+
+        if self.entries.is_empty() {
+            lines.push("  • No sub-agents running.".italic().into());
+            return lines;
+        }
+
+        for entry in &self.entries {
+            lines.push(entry.title_line());
+            let preview_width = width.saturating_sub(AGENT_STATUS_PREVIEW_INDENT).max(1);
+            let preview_lines = entry.preview_lines(preview_width);
+            if preview_lines.is_empty() {
+                lines.push(vec!["    ".into(), "No recent activity yet.".dim().italic()].into());
+            } else {
+                lines.extend(preview_lines.into_iter().map(indent_preview_line));
+            }
+            lines.push("".into());
+        }
+        let _ = lines.pop();
+        lines
+    }
+
+    fn raw_lines(&self) -> Vec<Line<'static>> {
+        plain_lines(self.display_lines(u16::MAX))
+    }
+}
+
+#[derive(Debug)]
+pub(super) struct AgentStatusThreadPreview {
+    agent_path: String,
+    activity: Vec<String>,
+}
+
+impl AgentStatusThreadPreview {
+    pub(super) fn from_store(agent_path: String, store: &ThreadEventStore) -> Self {
+        Self::from_events(agent_path, store.buffer.iter().rev())
+    }
+
+    pub(super) fn empty(agent_path: String) -> Self {
+        Self::from_events(agent_path, std::iter::empty())
+    }
+
+    fn from_events<'a>(
+        agent_path: String,
+        events: impl Iterator<Item = &'a ThreadBufferedEvent>,
+    ) -> Self {
+        let mut seen_item_ids = HashSet::new();
+        let mut activity = Vec::new();
+        for event in events {
+            let item = match event {
+                ThreadBufferedEvent::Notification(notification) => match notification.as_ref() {
+                    ServerNotification::ItemCompleted(event) => &event.item,
+                    ServerNotification::ItemStarted(event) => &event.item,
+                    _ => continue,
+                },
+                ThreadBufferedEvent::Request(_)
+                | ThreadBufferedEvent::HistoryEntryResponse(_)
+                | ThreadBufferedEvent::FeedbackSubmission(_) => continue,
+            };
+            if !seen_item_ids.insert(item.id().to_string()) {
+                continue;
+            }
+            if let Some(summary) = activity_summary(&item.payload) {
+                activity.push(summary);
+                if activity.len() == AGENT_STATUS_PREVIEW_ITEMS {
+                    break;
+                }
+            }
+        }
+        activity.reverse();
+        Self {
+            agent_path,
+            activity,
+        }
+    }
+
+    fn title_line(&self) -> Line<'static> {
+        vec![
+            "  • ".dim(),
+            format!("`{}`", self.agent_path).fg(accent_color()),
+        ]
+        .into()
+    }
+
+    fn preview_lines(&self, width: u16) -> Vec<Line<'static>> {
+        let mut lines = self
+            .activity
+            .iter()
+            .flat_map(|activity| textwrap::wrap(activity, width as usize))
+            .filter(|line| !line.trim().is_empty())
+            .map(|line| line.into_owned().dim().into())
+            .collect::<Vec<_>>();
+        if lines.len() > AGENT_STATUS_PREVIEW_LINES {
+            lines.drain(..lines.len() - AGENT_STATUS_PREVIEW_LINES);
+        }
+        lines
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum AgentTaskStatus {
@@ -111,8 +235,8 @@ pub(super) fn latest_activity(store: &ThreadEventStore) -> Option<String> {
         .rev()
         .find_map(|event| match event {
             ThreadBufferedEvent::Notification(notification) => match notification.as_ref() {
-                ServerNotification::ItemCompleted(event) => activity_summary(&event.item),
-                ServerNotification::ItemStarted(event) => activity_summary(&event.item),
+                ServerNotification::ItemCompleted(event) => activity_summary(&event.item.payload),
+                ServerNotification::ItemStarted(event) => activity_summary(&event.item.payload),
                 _ => None,
             },
             ThreadBufferedEvent::Request(_)
@@ -125,28 +249,28 @@ pub(super) fn latest_activity(store: &ThreadEventStore) -> Option<String> {
                 .iter()
                 .rev()
                 .flat_map(|turn| turn.items.iter().rev())
-                .find_map(activity_summary)
+                .find_map(|item| activity_summary(&item.payload))
         })
 }
 
-fn activity_summary(item: &ThreadItem) -> Option<String> {
+fn activity_summary(item: &ThreadItemPayload) -> Option<String> {
     let summary = match item {
-        ThreadItem::AgentMessage { text, .. } | ThreadItem::Plan { text, .. } => text,
-        ThreadItem::Reasoning { summary, .. } => summary.last()?,
-        ThreadItem::CommandExecution { command, .. } => {
+        ThreadItemPayload::AgentMessage { text, .. } | ThreadItemPayload::Plan { text, .. } => text,
+        ThreadItemPayload::Reasoning { summary, .. } => summary.last()?,
+        ThreadItemPayload::CommandExecution { command, .. } => {
             let command = truncate_text(
                 command,
                 AGENT_STATUS_PREVIEW_GRAPHEMES.saturating_sub("$ ".len()),
             );
             return bounded_summary(&format!("$ {command}"));
         }
-        ThreadItem::FileChange { changes, .. } => {
+        ThreadItemPayload::FileChange { changes, .. } => {
             return bounded_summary(&format!("Updated {} file(s)", changes.len()));
         }
-        ThreadItem::McpToolCall { server, tool, .. } => {
+        ThreadItemPayload::McpToolCall { server, tool, .. } => {
             return bounded_summary(&format!("MCP {server}/{tool}"));
         }
-        ThreadItem::DynamicToolCall {
+        ThreadItemPayload::DynamicToolCall {
             namespace, tool, ..
         } => {
             let tool = namespace
@@ -155,7 +279,7 @@ fn activity_summary(item: &ThreadItem) -> Option<String> {
                 .unwrap_or_else(|| tool.clone());
             return bounded_summary(&format!("Tool {tool}"));
         }
-        ThreadItem::CollabAgentToolCall { tool, .. } => {
+        ThreadItemPayload::CollabAgentToolCall { tool, .. } => {
             let action = match tool {
                 CollabAgentTool::SendMessage
                 | CollabAgentTool::FollowupTask
@@ -169,7 +293,7 @@ fn activity_summary(item: &ThreadItem) -> Option<String> {
             };
             return Some(action.to_string());
         }
-        ThreadItem::SubAgentActivity {
+        ThreadItemPayload::SubAgentActivity {
             kind, agent_path, ..
         } => {
             let action = match kind {
@@ -180,21 +304,27 @@ fn activity_summary(item: &ThreadItem) -> Option<String> {
             };
             return bounded_summary(&format!("{action} {agent_path}"));
         }
-        ThreadItem::WebSearch(item) => {
+        ThreadItemPayload::WebSearch(item) => {
             return bounded_summary(&format!("Web search: {}", item.query));
         }
-        ThreadItem::ImageView { path, .. } => {
+        ThreadItemPayload::ImageView { path, .. } => {
             let path = path.render_for_ui();
             return bounded_summary(&format!("Viewed {path}"));
         }
-        ThreadItem::ImageGeneration(_) => return Some("Generated an image".to_string()),
-        ThreadItem::EnteredReviewMode { .. } => return Some("Entered review mode".to_string()),
-        ThreadItem::ExitedReviewMode { .. } => return Some("Exited review mode".to_string()),
-        ThreadItem::ContextCompaction { .. } => return Some("Compacted context".to_string()),
-        ThreadItem::UserMessage { .. }
-        | ThreadItem::HookPrompt { .. }
-        | ThreadItem::FunctionCallOutput { .. }
-        | ThreadItem::Sleep(_) => {
+        ThreadItemPayload::ImageGeneration(_) => return Some("Generated an image".to_string()),
+        ThreadItemPayload::EnteredReviewMode { .. } => {
+            return Some("Entered review mode".to_string());
+        }
+        ThreadItemPayload::ExitedReviewMode { .. } => {
+            return Some("Exited review mode".to_string());
+        }
+        ThreadItemPayload::ContextCompaction { .. } => {
+            return Some("Compacted context".to_string());
+        }
+        ThreadItemPayload::UserMessage { .. }
+        | ThreadItemPayload::HookPrompt { .. }
+        | ThreadItemPayload::FunctionCallOutput { .. }
+        | ThreadItemPayload::Sleep(_) => {
             return None;
         }
     };
@@ -205,6 +335,11 @@ fn bounded_summary(summary: &str) -> Option<String> {
     let summary = truncate_text(summary, AGENT_STATUS_PREVIEW_GRAPHEMES);
     let summary = summary.split_whitespace().collect::<Vec<_>>().join(" ");
     (!summary.is_empty()).then_some(summary)
+}
+
+fn indent_preview_line(mut line: Line<'static>) -> Line<'static> {
+    line.spans.insert(0, "    ".into());
+    line
 }
 
 #[cfg(test)]

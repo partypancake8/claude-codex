@@ -35,7 +35,8 @@ impl Tui {
             return self.clear_startup_sprite();
         };
         if area.is_empty()
-            || area.bottom() > self.terminal.viewport_area.top()
+            || (!self.is_owned_screen() && area.bottom() > self.terminal.viewport_area.top())
+            || area.bottom() > self.terminal.last_known_screen_size.height
             || area.right() > self.terminal.last_known_screen_size.width
         {
             return self.clear_startup_sprite();
